@@ -1,11 +1,12 @@
 package tests
 
 import (
-	"golibs/csv"
-	"golibs/csv/utils"
 	"os"
 	"path"
 	"testing"
+
+	"github.com/necroin/golibs/csv"
+	"github.com/necroin/golibs/csv/utils"
 
 	"github.com/google/go-cmp/cmp"
 )

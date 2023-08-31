@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/csv"
 	"fmt"
-	"golibs/csv/utils"
 	"io"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/necroin/golibs/csv/utils"
 )
 
 func UnmarshalData[T any](data []byte, result *[]T) error {

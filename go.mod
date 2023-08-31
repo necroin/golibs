@@ -1,4 +1,4 @@
-module golibs
+module github.com/necroin/golibs
 
 go 1.20
 

@@ -3,9 +3,10 @@ package csv
 import (
 	"encoding/csv"
 	"fmt"
-	"golibs/csv/utils"
 	"io"
 	"reflect"
+
+	"github.com/necroin/golibs/csv/utils"
 )
 
 func Marshal[T any](dataWriter io.Writer, data []T) error {
