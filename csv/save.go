@@ -10,7 +10,17 @@ import (
 )
 
 func Marshal[T any](dataWriter io.Writer, data []T) error {
+	return MarshalWithOptions(dataWriter, data, Options{})
+}
+
+func MarshalWithOptions[T any](dataWriter io.Writer, data []T, options Options) error {
 	writer := csv.NewWriter(dataWriter)
+
+	if options.Delimiter != 0 {
+		writer.Comma = options.Delimiter
+	}
+	writer.UseCRLF = options.UseCRLF
+
 	headers, err := findHeaders(reflect.ValueOf(utils.InstantiateSliceElement(&data)))
 	if err != nil {
 		return err
