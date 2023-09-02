@@ -29,6 +29,14 @@ func NewMetricVector[T Metric](defaultConsctructor func() T, labels ...string) *
 	}
 }
 
+func (metricVector *MetricVector[T]) With(labels Labels) T {
+	labelValues := []string{}
+	for _, labelName := range metricVector.labels {
+		labelValues = append(labelValues, labels[labelName])
+	}
+	return metricVector.WithLabelValues(labelValues...)
+}
+
 func (metricVector *MetricVector[T]) WithLabelValues(labels ...string) T {
 	if len(labels) != len(metricVector.labels) {
 		panic("[Metrics] [WithLabels] [Error] mismatch labels count")

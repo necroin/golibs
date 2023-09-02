@@ -14,7 +14,6 @@ type CounterOpts struct {
 }
 
 type Counter struct {
-	Metric
 	description *Description
 	value       *concurrent.AtomicNumber[float64]
 }
@@ -28,6 +27,10 @@ func NewCounter(opts CounterOpts) *Counter {
 		},
 		value: concurrent.NewAtomicNumber[float64](),
 	}
+}
+
+func (counter *Counter) Get() float64 {
+	return counter.value.Get()
 }
 
 func (counter *Counter) Add(value float64) {
@@ -69,12 +72,12 @@ func (counterVector *CounterVector) Description() *Description {
 func (counterVector *CounterVector) Write(writer io.Writer) {
 	counterVector.data.Iterate(func(key string, counter *Counter) {
 		labels := []string{}
-		key_labels := strings.Split(key, ",")
-		for label_index, label_value := range key_labels {
-			label_name := counterVector.labels[label_index]
-			label := fmt.Sprintf("%s=%v", label_name, label_value)
+		keyLabels := strings.Split(key, ",")
+		for labelIndex, labelValue := range keyLabels {
+			labelName := counterVector.labels[labelIndex]
+			label := fmt.Sprintf("%s=%v", labelName, labelValue)
 			labels = append(labels, label)
 		}
-		writer.Write([]byte(fmt.Sprintf("%s{%s} %v\n", counterVector.description.Name, strings.Join(labels, ","), counter.value.Get())))
+		writer.Write([]byte(fmt.Sprintf("%s{%s} %v\n", counterVector.description.Name, strings.Join(labels, ","), counter.Get())))
 	})
 }
