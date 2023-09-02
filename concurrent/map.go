@@ -15,7 +15,7 @@ func NewConcurrentMap[K comparable, V any]() *ConcurrentMap[K, V] {
 	}
 }
 
-// Inserts element into the container, if the container doesn't already contain an element with an equivalent key.
+// Inserts element into the container, replace if the container already contain an element with an equivalent key.
 func (concurrentMap *ConcurrentMap[K, V]) Insert(key K, value V) {
 	concurrentMap.mutex.Lock()
 	defer concurrentMap.mutex.Unlock()

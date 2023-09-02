@@ -38,7 +38,7 @@ func (concurrentSlice *ConcurrentSlice[V]) Insert(index uint, value V) error {
 	return nil
 }
 
-// Appends the given element value to the end of the container.
+// Appends the given elements value to the end of the container.
 func (concurrentSlice *ConcurrentSlice[V]) Append(values ...V) {
 	concurrentSlice.mutex.Lock()
 	defer concurrentSlice.mutex.Unlock()
@@ -58,7 +58,7 @@ func (concurrentSlice *ConcurrentSlice[V]) At(index uint) (V, error) {
 	return concurrentSlice.data[index], nil
 }
 
-// Erases the specified elements from the container.
+// Erases the specified element from the container.
 func (concurrentSlice *ConcurrentSlice[V]) Erase(index uint) error {
 	size := concurrentSlice.Size()
 
