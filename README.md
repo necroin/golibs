@@ -149,6 +149,12 @@ Provides thread-safe containers and atomic types.
 ___
 ## Metrics
 Provides thread-safe metrics.
+- `Counter`
+- `Gauge`
+- `Label`
+- `Histogram`
+- `The above vectorized metrics with labels`
+___
 - `Counter` and `CounterVector`
 ```Go
 package main
@@ -199,6 +205,25 @@ func main() {
 
 	fmt.Println(gauge.Get())
 	fmt.Println(gaugeVector.WithLabelValues("test11", "test12").Get())
+}
+```
+
+- `Label` and `LabelVector`
+```Go
+var (
+	label       = metrics.NewLabel(metrics.LabelOpts{Name: "test_label", Help: "Label help information"})
+	labelVector = metrics.NewLabelVector(
+		metrics.LabelOpts{Name: "test_label_vector", Help: "Label vector help information"},
+		"label1", "label2",
+	)
+)
+
+func main() {
+	label.Set(RandomString(10))
+	labelVector.WithLabelValues("test11", "test12").Set(RandomString(10))
+
+	fmt.Println(label.Get())
+	fmt.Println(labelVector.WithLabelValues("test11", "test12").Get())
 }
 ```
 

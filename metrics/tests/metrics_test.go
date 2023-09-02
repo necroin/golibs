@@ -20,6 +20,11 @@ var (
 		metrics.GaugeOpts{Name: "test_gauge_vector", Help: "Gauge vector help information"},
 		"label1", "label2",
 	)
+	label       = metrics.NewLabel(metrics.LabelOpts{Name: "test_label", Help: "Label help information"})
+	labelVector = metrics.NewLabelVector(
+		metrics.LabelOpts{Name: "test_label_vector", Help: "Label vector help information"},
+		"label1", "label2",
+	)
 	histogram = metrics.NewHistogram(metrics.HistogramOpts{
 		Name: "test_histogram", Help: "Histogram help information",
 		Buckets: metrics.Buckets{Start: 0, Range: 10, Count: 10},
@@ -39,6 +44,8 @@ func TestMetrics(t *testing.T) {
 	registry.Register(counterVector)
 	registry.Register(gauge)
 	registry.Register(gaugeVector)
+	registry.Register(label)
+	registry.Register(labelVector)
 	registry.Register(histogram)
 	registry.Register(histogramVector)
 
@@ -54,47 +61,34 @@ func SimMetricsWork() {
 	go func() {
 		for {
 			counter.Inc()
-			time.Sleep(1 * time.Second)
-		}
-	}()
-
-	go func() {
-		for {
 			counterVector.WithLabelValues("test11", "test12").Inc()
 			counterVector.WithLabelValues("test21", "test22").Inc()
-			time.Sleep(1 * time.Second)
-		}
-	}()
 
-	go func() {
-		for {
 			gauge.Set(rand.Float64())
-			time.Sleep(1 * time.Second)
-		}
-	}()
-
-	go func() {
-		for {
 			gaugeVector.WithLabelValues("test11", "test12").Set(rand.Float64())
 			gaugeVector.WithLabelValues("test21", "test22").Set(rand.Float64())
-			time.Sleep(1 * time.Second)
-		}
-	}()
 
-	go func() {
-		for {
+			label.Set(RandomString(10))
+			labelVector.WithLabelValues("test11", "test12").Set(RandomString(10))
+			labelVector.WithLabelValues("test21", "test22").Set(RandomString(10))
+
 			histogram.Observe(rand.Float64() * 100)
 			histogram.Observe(1000)
 
-			time.Sleep(1 * time.Second)
-		}
-	}()
-
-	go func() {
-		for {
 			histogramVector.WithLabelValues("test11", "test12").Observe(rand.Float64() * 100)
 			histogramVector.WithLabelValues("test21", "test22").Observe(rand.Float64() * 100)
+
 			time.Sleep(1 * time.Second)
 		}
 	}()
+}
+
+func RandomString(n int) string {
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+
+	s := make([]rune, n)
+	for i := range s {
+		s[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(s)
 }
