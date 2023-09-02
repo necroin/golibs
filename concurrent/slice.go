@@ -39,10 +39,10 @@ func (concurrentSlice *ConcurrentSlice[V]) Insert(index uint, value V) error {
 }
 
 // Appends the given element value to the end of the container.
-func (concurrentSlice *ConcurrentSlice[V]) Append(value V) {
+func (concurrentSlice *ConcurrentSlice[V]) Append(values ...V) {
 	concurrentSlice.mutex.Lock()
 	defer concurrentSlice.mutex.Unlock()
-	concurrentSlice.data = append(concurrentSlice.data, value)
+	concurrentSlice.data = append(concurrentSlice.data, values...)
 }
 
 // Returns the element at specified location index, with bounds checking.
