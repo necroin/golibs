@@ -148,6 +148,12 @@ func (iterator *ConcurrentSliceIterator[V]) Get() (V, error) {
 	return iterator.data.At(iterator.index)
 }
 
+func (iterator *ConcurrentSliceIterator[V]) Pos() uint {
+	iterator.mutex.RLock()
+	defer iterator.mutex.RUnlock()
+	return iterator.index
+}
+
 func (iterator *ConcurrentSliceIterator[V]) Set(value V) error {
 	iterator.mutex.Lock()
 	defer iterator.mutex.Unlock()
@@ -155,9 +161,7 @@ func (iterator *ConcurrentSliceIterator[V]) Set(value V) error {
 }
 
 func (iterator *ConcurrentSliceIterator[V]) Equal(other *ConcurrentSliceIterator[V]) bool {
-	iterator.mutex.RLock()
-	other.mutex.RLock()
-	defer iterator.mutex.RUnlock()
-	defer other.mutex.RUnlock()
-	return iterator.index == other.index
+	selfPos := iterator.Pos()
+	otherPos := other.Pos()
+	return selfPos == otherPos
 }

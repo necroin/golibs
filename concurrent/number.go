@@ -42,3 +42,11 @@ func (atomic *AtomicNumber[T]) Sub(value T) {
 	defer atomic.mutex.Unlock()
 	atomic.value -= value
 }
+
+func (atomic *AtomicNumber[T]) Inc() {
+	atomic.Add(1)
+}
+
+func (atomic *AtomicNumber[T]) Dec() {
+	atomic.Sub(1)
+}

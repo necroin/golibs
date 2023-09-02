@@ -24,3 +24,13 @@ func (atomic *AtomicBool) Set(value bool) {
 	defer atomic.mutex.Unlock()
 	atomic.value = value
 }
+
+func (atomic *AtomicBool) Equal(other *AtomicBool) bool {
+	selfValue := atomic.Get()
+	otherValue := other.Get()
+	return selfValue == otherValue
+}
+
+func (atomic *AtomicBool) NotEqual(other *AtomicBool) bool {
+	return !atomic.Equal(other)
+}
