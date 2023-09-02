@@ -223,3 +223,19 @@ func main() {
 	histogramVector.WithLabelValues("test11", "test12").Observe(rand.Float64() * 100)
 }
 ```
+
+### Metrics server
+```Go
+func main() {
+	registry := metrics.NewRegistry()
+	registry.Register(counter)
+	registry.Register(counterVector)
+	registry.Register(gauge)
+	registry.Register(gaugeVector)
+	registry.Register(histogram)
+	registry.Register(histogramVector)
+
+	http.Handle("/metrics", registry.Handler())
+	http.ListenAndServe("localhost:3301", nil)
+}
+```
