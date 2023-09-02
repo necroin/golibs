@@ -95,14 +95,12 @@ if err := csv.Marshal(file, data); err != nil {
 ___
 ## Concurrent
 Provides thread-safe containers and atomic types.
-- `AtomicBool`
+- `AtomicValue[T]`
 	- Functions:
-		- `NewAtomicBool() *AtomicBool`
+		- `NewAtomicValue[T any]() *AtomicValue[T]`
 	- Methods:
-		- `Get() bool`
-		- `Set(value bool)`
-		- `Equal(other *AtomicBool) bool`
-		- `NotEqual(other *AtomicBool) bool`
+		- `Get() T`
+		- `Set(value T)`
 - `AtomicNumber[T]` 
 	- Types:
 		- `float32` | `float64` 
