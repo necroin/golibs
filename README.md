@@ -96,6 +96,8 @@ ___
 ## Concurrent
 Provides thread-safe containers and atomic types.
 - `AtomicBool`
+	- Functions:
+		- `NewAtomicBool() *AtomicBool`
 	- Methods:
 		- `Get() bool`
 		- `Set(value bool)`
@@ -106,6 +108,8 @@ Provides thread-safe containers and atomic types.
 		- `float32` | `float64` 
 		- `int` | `int8` | `int16` | `int32` | `int64` 
 		- `uint` | `uint8` | `uint16` | `uint32` | `uint64`
+	- Functions:
+		- `NewAtomicNumber[T Number]() *AtomicNumber[T]`
 	- Methods:
 		- `Get() T`
 		- `Set(value T)`
