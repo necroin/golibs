@@ -1,6 +1,6 @@
 # Go Libraries
-- [CSV](#CSV)
-- [Concurrent](#Concurrent)
+- [CSV](#CSV) - Reads csv files uses tags.
+- [Concurrent](#Concurrent) - Provides thread-safe containers and atomic types.
 ## CSV
 Reads csv files uses tags.
 ___
