@@ -1,6 +1,8 @@
 # Go Libraries
 - [CSV](#CSV) - Reads csv files uses tags.
 - [Concurrent](#Concurrent) - Provides thread-safe containers and atomic types.
+- [Metrics](#Metrics) - Provides thread-safe metrics.
+
 ## CSV
 Reads csv files uses tags.
 ___
@@ -142,3 +144,82 @@ Provides thread-safe containers and atomic types.
 		- `Pos() uint`
 		- `Set(value V) error `
 		- `Equal(other *ConcurrentSliceIterator[V]) bool`
+___
+## Metrics
+Provides thread-safe metrics.
+- `Counter` and `CounterVector`
+```Go
+package main
+
+var (
+	counter       = metrics.NewCounter(metrics.CounterOpts{Name: "test_counter", Help: "Counter help information"})
+	counterVector = metrics.NewCounterVector(
+		metrics.CounterOpts{Name: "test_counter_vector", Help: "Counter vector help information"},
+		"label1", "label2",
+	)
+)
+
+func main() {
+	counter.Inc()
+	counter.Add(rand.Float64())
+	counterVector.WithLabelValues("test11", "test12").Inc()
+	counterVector.WithLabelValues("test11", "test12").Add(rand.Float64())
+
+	fmt.Println(counter.Get())
+	fmt.Println(counterVector.WithLabelValues("test11", "test12").Get())
+}
+```
+
+- `Gauge` and `GaugeVector`
+```Go
+package main
+
+var (
+	gauge       = metrics.NewGauge(metrics.GaugeOpts{Name: "test_gauge", Help: "Gauge help information"})
+	gaugeVector = metrics.NewGaugeVector(
+		metrics.GaugeOpts{Name: "test_gauge_vector", Help: "Gauge vector help information"},
+		"label1", "label2",
+	)
+)
+
+func main() {
+	gauge.Set(rand.Float64())
+	gauge.Add(rand.Float64())
+	gauge.Sub(rand.Float64())
+	gauge.Inc()
+	gauge.Dec()
+
+	gaugeVector.WithLabelValues("test11", "test12").Set(rand.Float64())
+	gaugeVector.WithLabelValues("test11", "test12").Add(rand.Float64())
+	gaugeVector.WithLabelValues("test11", "test12").Sub(rand.Float64())
+	gaugeVector.WithLabelValues("test11", "test12").Inc()
+	gaugeVector.WithLabelValues("test11", "test12").Dec()
+
+	fmt.Println(gauge.Get())
+	fmt.Println(gaugeVector.WithLabelValues("test11", "test12").Get())
+}
+```
+
+- `Histogram` and `HistogramVector`
+```Go
+package main
+
+var (
+	histogram = metrics.NewHistogram(metrics.HistogramOpts{
+		Name: "test_histogram", Help: "Histogram help information",
+		Buckets: metrics.Buckets{Start: 0, Range: 10, Count: 10},
+	})
+	histogramVector = metrics.NewHistogramVector(
+		metrics.HistogramOpts{
+			Name: "test_histogram_vector", Help: "Histogram vector help information",
+			Buckets: metrics.Buckets{Start: 0, Range: 10, Count: 10},
+		},
+		"label1", "label2",
+	)
+)
+
+func main() {
+	histogram.Observe(rand.Float64() * 100)
+	histogramVector.WithLabelValues("test11", "test12").Observe(rand.Float64() * 100)
+}
+```
