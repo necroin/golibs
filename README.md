@@ -95,6 +95,13 @@ if err := csv.Marshal(file, data); err != nil {
 ___
 ## Concurrent
 Provides thread-safe containers and atomic types.
+___
+### Install
+```sh
+go get github.com/necroin/golibs/concurrent
+```
+___
+### Types
 - `AtomicValue[T]`
 	- Functions:
 		- `NewAtomicValue[T any]() *AtomicValue[T]`
@@ -154,6 +161,11 @@ Provides thread-safe metrics.
 - `Label`
 - `Histogram`
 - `The above vectorized metrics with labels`
+___
+### Install
+```sh
+go get github.com/necroin/golibs/metrics
+```
 ___
 - `Counter` and `CounterVector`
 ```Go
