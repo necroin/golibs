@@ -21,5 +21,8 @@ type Options struct {
 	TrimLeadingSpace bool
 	// True to use \r\n as the line terminator
 	UseCRLF bool
-	Tag     string
+	// True for trim spaces while read.
+	TrimSpace bool
+	// Parse Tag
+	Tag string
 }

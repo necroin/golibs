@@ -53,7 +53,7 @@ func UnmarshalWithOptions[T any](dataReader io.Reader, result *[]T, options Opti
 		if err != nil {
 			return fmt.Errorf("[CSV] [Error] failed read data: %s", err)
 		}
-		if err := AddRecord(result, record, columns); err != nil {
+		if err := AddRecord(result, record, columns, options); err != nil {
 			return err
 		}
 	}
@@ -61,12 +61,12 @@ func UnmarshalWithOptions[T any](dataReader io.Reader, result *[]T, options Opti
 	return nil
 }
 
-func AddRecord[T any](result *[]T, data []string, columns map[string]int) error {
+func AddRecord[T any](result *[]T, data []string, columns map[string]int, options Options) error {
 	record := utils.InstantiateSliceElement(result)
 	rvRecord := reflect.Indirect(reflect.ValueOf(record))
 
 	if utils.IsStruct(rvRecord) {
-		if err := fillStruct(rvRecord, data, columns); err != nil {
+		if err := fillStruct(rvRecord, data, columns, options); err != nil {
 			return err
 		}
 	}
@@ -75,7 +75,7 @@ func AddRecord[T any](result *[]T, data []string, columns map[string]int) error 
 	return nil
 }
 
-func fillStruct(rValue reflect.Value, data []string, columns map[string]int) error {
+func fillStruct(rValue reflect.Value, data []string, columns map[string]int, options Options) error {
 	if rValue.Type().Kind() == reflect.Pointer {
 		rValue.Set(reflect.New(rValue.Type().Elem()))
 		rValue = rValue.Elem()
@@ -86,7 +86,7 @@ func fillStruct(rValue reflect.Value, data []string, columns map[string]int) err
 		rtField := rValue.Type().Field(fieldIndex)
 
 		if utils.IsStruct(rvField) {
-			if err := fillStruct(rValue.Field(fieldIndex), data, columns); err != nil {
+			if err := fillStruct(rValue.Field(fieldIndex), data, columns, options); err != nil {
 				return err
 			}
 			continue
@@ -106,15 +106,18 @@ func fillStruct(rValue reflect.Value, data []string, columns map[string]int) err
 			continue
 		}
 
-		if err := setValue(rValue.Field(fieldIndex), data[columnIndex]); err != nil {
+		if err := setValue(rValue.Field(fieldIndex), data[columnIndex], options); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func setValue(field reflect.Value, data string) error {
-	data = strings.TrimSpace(data)
+func setValue(field reflect.Value, data string, options Options) error {
+	if options.TrimSpace {
+		data = strings.TrimSpace(data)
+	}
+
 	if data == "" {
 		return nil
 	}
