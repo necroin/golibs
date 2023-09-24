@@ -35,6 +35,10 @@ func UnmarshalWithOptions[T any](dataReader io.Reader, result *[]T, options Opti
 	reader.LazyQuotes = options.LazyQuotes
 	reader.TrimLeadingSpace = options.TrimLeadingSpace
 
+	if options.Tag == "" {
+		options.Tag = "csv"
+	}
+
 	columnsList, err := reader.Read()
 	if err != nil {
 		return fmt.Errorf("[CSV] [Error] failed read columns: %s", err)
@@ -92,7 +96,7 @@ func fillStruct(rValue reflect.Value, data []string, columns map[string]int, opt
 			continue
 		}
 
-		tag := rtField.Tag.Get("csv")
+		tag := rtField.Tag.Get(options.Tag)
 		if tag == "" || tag == "-" {
 			continue
 		}

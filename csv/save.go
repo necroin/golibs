@@ -21,14 +21,18 @@ func MarshalWithOptions[T any](dataWriter io.Writer, data []T, options Options) 
 	}
 	writer.UseCRLF = options.UseCRLF
 
-	headers, err := findHeaders(reflect.ValueOf(utils.InstantiateSliceElement(&data)))
+	if options.Tag == "" {
+		options.Tag = "csv"
+	}
+
+	headers, err := findHeaders(reflect.ValueOf(utils.InstantiateSliceElement(&data)), options)
 	if err != nil {
 		return err
 	}
 	writer.Write(headers)
 	writer.Flush()
 	for _, row := range data {
-		record, err := buildRecord(reflect.ValueOf(row))
+		record, err := buildRecord(reflect.ValueOf(row), options)
 		if err != nil {
 			return err
 		}
@@ -38,7 +42,7 @@ func MarshalWithOptions[T any](dataWriter io.Writer, data []T, options Options) 
 	return nil
 }
 
-func findHeaders(value reflect.Value) ([]string, error) {
+func findHeaders(value reflect.Value, options Options) ([]string, error) {
 	result := []string{}
 
 	if value.Type().Kind() == reflect.Pointer {
@@ -49,14 +53,14 @@ func findHeaders(value reflect.Value) ([]string, error) {
 		rvfield := value.Field(fieldIndex)
 		rtField := value.Type().Field(fieldIndex)
 		if utils.IsStruct(rvfield) {
-			record, err := findHeaders(rvfield)
+			record, err := findHeaders(rvfield, options)
 			if err != nil {
 				return result, err
 			}
 			result = append(result, record...)
 		}
 
-		tag := rtField.Tag.Get("csv")
+		tag := rtField.Tag.Get(options.Tag)
 		if tag == "" || tag == "-" {
 			continue
 		}
@@ -66,7 +70,7 @@ func findHeaders(value reflect.Value) ([]string, error) {
 	return result, nil
 }
 
-func buildRecord(value reflect.Value) ([]string, error) {
+func buildRecord(value reflect.Value, options Options) ([]string, error) {
 	result := []string{}
 
 	if value.Type().Kind() == reflect.Pointer {
@@ -78,14 +82,14 @@ func buildRecord(value reflect.Value) ([]string, error) {
 		rtField := value.Type().Field(fieldIndex)
 
 		if utils.IsStruct(rvField) {
-			record, err := buildRecord(rvField)
+			record, err := buildRecord(rvField, options)
 			if err != nil {
 				return result, err
 			}
 			result = append(result, record...)
 		}
 
-		tag := rtField.Tag.Get("csv")
+		tag := rtField.Tag.Get(options.Tag)
 		if tag == "" || tag == "-" {
 			continue
 		}
