@@ -37,7 +37,7 @@ type Table struct {
 	PrimaryKey []string     `json:"primary_key"`
 }
 
-func Parse(schemaData []byte) ([]Table, error) {
+func parseSchema(schemaData []byte) ([]Table, error) {
 	schema := &[]Table{}
 	if err := json.Unmarshal(schemaData, schema); err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func Parse(schemaData []byte) ([]Table, error) {
 	return *schema, nil
 }
 
-func Verify(tables []Table) error {
+func verifySchema(tables []Table) error {
 	for _, table := range tables {
 		if table.Name == "" {
 			return fmt.Errorf("table name is empty")
@@ -84,7 +84,7 @@ func Verify(tables []Table) error {
 	return nil
 }
 
-func CreateTableCommand(table Table) string {
+func createTableCommand(table Table) string {
 	fields := []string{}
 	for _, field := range table.Fields {
 		tableFieldType := fieldsTypesMap[field.Type]
@@ -141,7 +141,11 @@ func initMetadata(db *sql.DB, data []byte) error {
 		PrimaryKey: []string{"version"},
 	}
 
-	if _, err := db.Exec(CreateTableCommand(table)); err != nil {
+	if _, err := db.Exec(createTableCommand(table)); err != nil {
+		return fmt.Errorf("[SQLschema] [Error] failed init migration table : %s", err)
+	}
+
+	if _, err := db.Exec("INSERT INTO __Schema (version, data) VALUEs('current','[]')"); err != nil {
 		return fmt.Errorf("[SQLschema] [Error] failed init migration table : %s", err)
 	}
 
@@ -237,7 +241,7 @@ func schemaUpgrade(db *sql.DB, currentSchema []Table, previousSchema []Table) er
 
 	for _, table := range newTables {
 
-		if _, err := db.Exec(CreateTableCommand(table)); err != nil {
+		if _, err := db.Exec(createTableCommand(table)); err != nil {
 			return fmt.Errorf("[SQLschema] [Error] failed create new table: %s", err)
 		}
 	}
@@ -254,7 +258,7 @@ func schemaUpgrade(db *sql.DB, currentSchema []Table, previousSchema []Table) er
 		tableIsChanged := len(newFields) != 0 || len(removedFields) != 0
 
 		if tableIsChanged {
-			if _, err := db.Exec(CreateTableCommand(table)); err != nil {
+			if _, err := db.Exec(createTableCommand(table)); err != nil {
 				return fmt.Errorf(`[SQLschema] [Error] failed create "%s" table: %s`, table.Name, err)
 			}
 
@@ -290,12 +294,12 @@ func migration(db *sql.DB, currentSchemaData []byte) error {
 		return err
 	}
 
-	currentSchema, err := Parse(currentSchemaData)
+	currentSchema, err := parseSchema(currentSchemaData)
 	if err != nil {
 		return fmt.Errorf("[SQLschema] [Error] failed parse current schema: %s", err)
 	}
 
-	previousSchema, err := Parse(previousSchemaData)
+	previousSchema, err := parseSchema(previousSchemaData)
 	if err != nil {
 		return fmt.Errorf("[SQLschema] [Error] failed parse previous schema: %s", err)
 	}
@@ -323,11 +327,11 @@ func SetSchema(db *sql.DB, data io.Reader) error {
 	if err != nil {
 		return fmt.Errorf("[SQLschema] [Error] failed read schema data: %s", err)
 	}
-	tables, err := Parse(shcemaData)
+	tables, err := parseSchema(shcemaData)
 	if err != nil {
 		return fmt.Errorf("[SQLschema] [Error] failed parse schema: %s", err)
 	}
-	if err := Verify(tables); err != nil {
+	if err := verifySchema(tables); err != nil {
 		return fmt.Errorf("[SQLschema] [Error] failed verify schema: %s", err)
 	}
 
