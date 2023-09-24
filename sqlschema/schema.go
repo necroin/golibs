@@ -145,9 +145,7 @@ func initMetadata(db *sql.DB, data []byte) error {
 		return fmt.Errorf("[SQLschema] [Error] failed init migration table : %s", err)
 	}
 
-	if _, err := db.Exec("INSERT INTO __Schema (version, data) VALUEs('current','[]')"); err != nil {
-		return fmt.Errorf("[SQLschema] [Error] failed init migration table : %s", err)
-	}
+	db.Exec("INSERT INTO __Schema (version, data) VALUEs('current','[]')")
 
 	return nil
 }
