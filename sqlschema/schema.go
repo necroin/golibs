@@ -46,7 +46,7 @@ func Parse(schemaData []byte) ([]Table, error) {
 	return *schema, nil
 }
 
-func verify(tables []Table) error {
+func Verify(tables []Table) error {
 	for _, table := range tables {
 		if table.Name == "" {
 			return fmt.Errorf("table name is empty")
@@ -329,7 +329,7 @@ func SetSchema(db *sql.DB, data io.Reader) error {
 	if err != nil {
 		return fmt.Errorf("[SQLschema] [Error] failed parse schema: %s", err)
 	}
-	if err := verify(tables); err != nil {
+	if err := Verify(tables); err != nil {
 		return fmt.Errorf("[SQLschema] [Error] failed verify schema: %s", err)
 	}
 
