@@ -37,7 +37,7 @@ type Table struct {
 	PrimaryKey []string     `json:"primary_key"`
 }
 
-func parseSchema(schemaData []byte) ([]Table, error) {
+func Parse(schemaData []byte) ([]Table, error) {
 	schema := &[]Table{}
 	if err := json.Unmarshal(schemaData, schema); err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func parseSchema(schemaData []byte) ([]Table, error) {
 	return *schema, nil
 }
 
-func verifySchema(tables []Table) error {
+func verify(tables []Table) error {
 	for _, table := range tables {
 		if table.Name == "" {
 			return fmt.Errorf("table name is empty")
@@ -292,12 +292,12 @@ func migration(db *sql.DB, currentSchemaData []byte) error {
 		return err
 	}
 
-	currentSchema, err := parseSchema(currentSchemaData)
+	currentSchema, err := Parse(currentSchemaData)
 	if err != nil {
 		return fmt.Errorf("[SQLschema] [Error] failed parse current schema: %s", err)
 	}
 
-	previousSchema, err := parseSchema(previousSchemaData)
+	previousSchema, err := Parse(previousSchemaData)
 	if err != nil {
 		return fmt.Errorf("[SQLschema] [Error] failed parse previous schema: %s", err)
 	}
@@ -325,11 +325,11 @@ func SetSchema(db *sql.DB, data io.Reader) error {
 	if err != nil {
 		return fmt.Errorf("[SQLschema] [Error] failed read schema data: %s", err)
 	}
-	tables, err := parseSchema(shcemaData)
+	tables, err := Parse(shcemaData)
 	if err != nil {
 		return fmt.Errorf("[SQLschema] [Error] failed parse schema: %s", err)
 	}
-	if err := verifySchema(tables); err != nil {
+	if err := verify(tables); err != nil {
 		return fmt.Errorf("[SQLschema] [Error] failed verify schema: %s", err)
 	}
 
