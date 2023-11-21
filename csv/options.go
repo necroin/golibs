@@ -23,6 +23,8 @@ type Options struct {
 	UseCRLF bool
 	// True for trim spaces while read.
 	TrimSpace bool
+	// True for trim spaces while read.
+	TrimQuotes bool
 	// Parse Tag
 	Tag string
 }

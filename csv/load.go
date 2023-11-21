@@ -126,6 +126,10 @@ func setValue(field reflect.Value, data string, options Options) error {
 		return nil
 	}
 
+	if options.TrimQuotes {
+		data = strings.Trim(data, "\"")
+	}
+
 	if field.Kind() == reflect.Pointer {
 		field.Set(reflect.New(field.Type().Elem()))
 		field = field.Elem()
