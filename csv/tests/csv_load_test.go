@@ -176,3 +176,21 @@ func TestLoad_Typed(t *testing.T) {
 		t.Error(rows)
 	}
 }
+
+func TestLoad_DoubledColumn(t *testing.T) {
+	data, err := os.ReadFile(path.Join(dataPath, "doubled_column.csv"))
+	if err != nil {
+		t.Error(err)
+	}
+
+	rows := []CommonRow{}
+	err = csv.UnmarshalData(data, &rows)
+
+	if err == nil {
+		t.Error("Must be error: multiple column definition")
+	}
+
+	if err.Error() != "[CSV] [Error] failed read columns, multiple column definition: Header2" {
+		t.Error("Must be error: multiple column definition")
+	}
+}

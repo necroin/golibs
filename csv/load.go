@@ -46,6 +46,9 @@ func UnmarshalWithOptions[T any](dataReader io.Reader, result *[]T, options Opti
 
 	columns := map[string]int{}
 	for index, column := range columnsList {
+		if _, ok := columns[column]; ok {
+			return fmt.Errorf("[CSV] [Error] failed read columns, multiple column definition: %s", column)
+		}
 		columns[column] = index
 	}
 
