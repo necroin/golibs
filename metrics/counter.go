@@ -75,7 +75,7 @@ func (counterVector *CounterVector) Write(writer io.Writer) {
 		keyLabels := strings.Split(key, ",")
 		for labelIndex, labelValue := range keyLabels {
 			labelName := counterVector.labels[labelIndex]
-			label := fmt.Sprintf("%s=%v", labelName, labelValue)
+			label := fmt.Sprintf("%s=\"%v\"", labelName, labelValue)
 			labels = append(labels, label)
 		}
 		writer.Write([]byte(fmt.Sprintf("%s{%s} %v\n", counterVector.description.Name, strings.Join(labels, ","), counter.Get())))

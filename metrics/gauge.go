@@ -87,7 +87,7 @@ func (gaugeVector *GaugeVector) Write(writer io.Writer) {
 		keyLabels := strings.Split(key, ",")
 		for labelIndex, labelValue := range keyLabels {
 			labelName := gaugeVector.labels[labelIndex]
-			label := fmt.Sprintf("%s=%v", labelName, labelValue)
+			label := fmt.Sprintf("%s=\"%v\"", labelName, labelValue)
 			labels = append(labels, label)
 		}
 		writer.Write([]byte(fmt.Sprintf("%s{%s} %v\n", gaugeVector.description.Name, strings.Join(labels, ","), gauge.value.Get())))

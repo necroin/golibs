@@ -71,7 +71,7 @@ func (labelVector *LabelVector) Write(writer io.Writer) {
 		keyLabels := strings.Split(key, ",")
 		for labelIndex, labelValue := range keyLabels {
 			labelName := labelVector.labels[labelIndex]
-			label := fmt.Sprintf("%s=%v", labelName, labelValue)
+			label := fmt.Sprintf("%s=\"%v\"", labelName, labelValue)
 			labels = append(labels, label)
 		}
 		writer.Write([]byte(fmt.Sprintf("%s{%s} %v\n", labelVector.description.Name, strings.Join(labels, ","), label.value.Get())))
