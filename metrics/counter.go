@@ -29,6 +29,10 @@ func NewCounter(opts CounterOpts) *Counter {
 	}
 }
 
+func (counter *Counter) set(value float64) {
+	counter.value.Set(value)
+}
+
 func (counter *Counter) Get() float64 {
 	return counter.value.Get()
 }

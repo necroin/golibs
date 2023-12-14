@@ -52,10 +52,25 @@ func (histogram *Histogram) Description() *Description {
 	return histogram.description
 }
 
+func (histogram *Histogram) divAllBuckets(value float64) {
+	histogram.minusInf.set(histogram.minusInf.Get() / value)
+	histogram.plusInf.set(histogram.plusInf.Get() / value)
+
+	for bucketIterator := 0; bucketIterator < int(histogram.buckets.Count); bucketIterator++ {
+		counter, _ := histogram.values.At(uint(bucketIterator))
+		counter.set(counter.Get() / value)
+	}
+}
+
 func (histogram *Histogram) Observe(value float64) {
+	divValue := float64(2)
 	offset := value - float64(histogram.buckets.Start)
 
 	if offset < 0 {
+		minusInfValue := histogram.minusInf.Get()
+		if minusInfValue+1 < 0 {
+			histogram.divAllBuckets(divValue)
+		}
 		histogram.minusInf.Inc()
 		return
 	}
@@ -63,11 +78,19 @@ func (histogram *Histogram) Observe(value float64) {
 	bucketId := offset / float64(histogram.buckets.Range)
 
 	if bucketId >= float64(histogram.buckets.Count) {
+		plusInfValue := histogram.plusInf.Get()
+		if plusInfValue+1 < 0 {
+			histogram.divAllBuckets(divValue)
+		}
 		histogram.plusInf.Inc()
 		return
 	}
 
 	bucket, _ := histogram.values.At(uint(bucketId))
+	bucketValue := bucket.Get()
+	if bucketValue+1 < 0 {
+		histogram.divAllBuckets(divValue)
+	}
 	bucket.Inc()
 }
 
