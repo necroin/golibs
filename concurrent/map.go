@@ -46,11 +46,41 @@ func (concurrentMap *ConcurrentMap[K, V]) Erase(key K) (V, bool) {
 }
 
 // Iterates over elements of the container with specified handler.
-func (concurrentMap *ConcurrentMap[K, V]) Iterate(handler func(K, V)) {
+func (concurrentMap *ConcurrentMap[K, V]) Iterate(handler func(key K, value V)) {
 	concurrentMap.mutex.RLock()
 	defer concurrentMap.mutex.RUnlock()
 
 	for key, value := range concurrentMap.data {
 		handler(key, value)
 	}
+}
+
+// Returns the number of elements in the container.
+func (concurrentMap *ConcurrentMap[K, V]) Size() int {
+	concurrentMap.mutex.RLock()
+	defer concurrentMap.mutex.RUnlock()
+	return len(concurrentMap.data)
+}
+
+// Checks if the container has no elements.
+func (concurrentMap *ConcurrentMap[K, V]) IsEmpty() bool {
+	return concurrentMap.Size() == 0
+}
+
+// Returns slice of map keys.
+func (concurrentMap *ConcurrentMap[K, V]) Keys() []K {
+	result := []K{}
+	concurrentMap.Iterate(func(key K, value V) {
+		result = append(result, key)
+	})
+	return result
+}
+
+// Returns slice of map values.
+func (concurrentMap *ConcurrentMap[K, V]) Values() []V {
+	result := []V{}
+	concurrentMap.Iterate(func(key K, value V) {
+		result = append(result, value)
+	})
+	return result
 }

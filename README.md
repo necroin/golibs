@@ -130,6 +130,10 @@ ___
 		- `Find(key K) (V, bool)` - Finds an element with key equivalent to key.
 		- `Erase(key K) (V, bool)` - Removes specified element from the container.
 		- `Iterate(handler func(K, V))` - Iterates over elements of the container with specified handler.
+		- `Size() int` - Returns the number of elements in the container.
+		- `IsEmpty() bool` - Checks if the container has no elements.
+		- `Keys() []K` - Returns slice of map keys.
+		- `Values() []V` - Returns slice of map values.
 - `ConcurrentSlice[V]` and `ConcurrentSliceIterator[V]`
 	- Functions:
 		- `NewConcurrentSlice[V any]() *ConcurrentSlice[V]` - Constructs a new container.
