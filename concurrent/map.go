@@ -3,15 +3,17 @@ package concurrent
 import "sync"
 
 type ConcurrentMap[K comparable, V any] struct {
-	data  map[K]V
-	mutex *sync.RWMutex
+	data           map[K]V
+	mutex          *sync.RWMutex
+	complexOpMutex *sync.Mutex
 }
 
 // Constructs a new container.
 func NewConcurrentMap[K comparable, V any]() *ConcurrentMap[K, V] {
 	return &ConcurrentMap[K, V]{
-		data:  map[K]V{},
-		mutex: &sync.RWMutex{},
+		data:           map[K]V{},
+		mutex:          &sync.RWMutex{},
+		complexOpMutex: &sync.Mutex{},
 	}
 }
 
@@ -83,4 +85,11 @@ func (concurrentMap *ConcurrentMap[K, V]) Values() []V {
 		result = append(result, value)
 	})
 	return result
+}
+
+// Executes complex operation on map with given handler.
+func (concurrentMap *ConcurrentMap[K, V]) ComplexOperation(handler func() error) error {
+	concurrentMap.complexOpMutex.Lock()
+	defer concurrentMap.complexOpMutex.Unlock()
+	return handler()
 }
