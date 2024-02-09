@@ -28,15 +28,12 @@ func (tokenizer *Tokenizer) sortFindTokens() {
 	sort.Slice(tokenizer.tokens, func(i, j int) bool {
 		return len(tokenizer.tokens[i].pattern) > len(tokenizer.tokens[j].pattern)
 	})
-	fmt.Println(tokenizer.tokens)
 }
 
 func (tokenizer *Tokenizer) Find(text []byte) (*Token, error) {
 	for _, token := range tokenizer.tokens {
 		findedValue := token.regex.Find(text)
-		fmt.Println(token.pattern)
 		if len(findedValue) != 0 {
-			fmt.Println(string(findedValue))
 			valuedToken := &Token{
 				name:    token.name,
 				pattern: token.pattern,

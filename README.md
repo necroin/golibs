@@ -2,7 +2,8 @@
 - [CSV](#CSV) - Reads csv files uses tags.
 - [Concurrent](#Concurrent) - Provides thread-safe containers and atomic types.
 - [Metrics](#Metrics) - Provides thread-safe metrics.
-
+- [FSM](#FSM) - Provides finite state machine logic.
+- [Tokenizer](#Tokenizer) - Parses given text to tokens.
 ## CSV
 Reads csv files uses tags.
 ___
@@ -282,3 +283,33 @@ func main() {
 	http.ListenAndServe("localhost:3301", nil)
 }
 ```
+___
+## FSM
+Provides finite state machine logic.
+___
+### Install
+```sh
+go get github.com/necroin/golibs/fsm
+```
+___
+Types:
+- `FSM[Args]`
+	- Functions:
+		- `NewFSM[Args]` - Creates new FSM.
+	- Methoods:
+		- `AddState(action func()) *State[Args]`
+		- `SetCurrentState(state *State[Args])`
+		- `Handle(args Args)`
+		- `Execute()`
+- `State[Args]`
+	- Methoods:
+		- `AddTransition(handler func(Args) *State[Args])`
+___
+## Tokenizer
+Parses given text to tokens.
+___
+### Install
+```sh
+go get github.com/necroin/golibs/tokenizer
+```
+__
