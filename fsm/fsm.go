@@ -5,9 +5,9 @@ type FSM[Args any] struct {
 	currentState *State[Args]
 }
 
-func NewFSM[Args any]() *FSM[Args] {
+func NewFSM[Args any](states ...*State[Args]) *FSM[Args] {
 	return &FSM[Args]{
-		states:       []*State[Args]{},
+		states:       states,
 		currentState: nil,
 	}
 }
