@@ -10,6 +10,7 @@ type Tokenizer struct {
 	tokens       []*Token
 	values       []*Token
 	ignoreSpaces bool
+	ignoreTabs   bool
 }
 
 func NewTokenizer(tokens ...*Token) *Tokenizer {
@@ -17,6 +18,7 @@ func NewTokenizer(tokens ...*Token) *Tokenizer {
 		tokens:       tokens,
 		values:       []*Token{},
 		ignoreSpaces: true,
+		ignoreTabs:   true,
 	}
 }
 
@@ -42,7 +44,7 @@ func (tokenizer *Tokenizer) Find(text []byte) (*Token, error) {
 			return valuedToken, nil
 		}
 	}
-	return nil, fmt.Errorf("[Tokenizer] no tokens matched")
+	return nil, fmt.Errorf("[Tokenizer] no tokens matched: %s", text)
 }
 
 func (tokenizer *Tokenizer) Parse(text []byte) error {
@@ -50,9 +52,17 @@ func (tokenizer *Tokenizer) Parse(text []byte) error {
 	tokenizer.values = []*Token{}
 
 	for len(text) != 0 {
+		trimCutset := ""
+
 		if tokenizer.ignoreSpaces {
-			text = bytes.Trim(text, " ")
+			trimCutset = trimCutset + " "
 		}
+
+		if tokenizer.ignoreTabs {
+			trimCutset = trimCutset + "\t"
+		}
+
+		text = bytes.Trim(text, trimCutset)
 
 		token, err := tokenizer.Find(text)
 		if err != nil {
