@@ -132,7 +132,7 @@ func NewHistogramVector(opts HistogramOpts, labels ...string) *HistogramVector {
 		NewMetricVector[*Histogram](func() *Histogram { return NewHistogram(HistogramOpts{Buckets: opts.Buckets}) }, labels...),
 		&Description{
 			Name: opts.Name,
-			Type: "histogram_vector",
+			Type: "histogram",
 			Help: opts.Help,
 		},
 		opts.Buckets,

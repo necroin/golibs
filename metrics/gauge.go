@@ -71,7 +71,7 @@ func NewGaugeVector(opts GaugeOpts, labels ...string) *GaugeVector {
 		NewMetricVector[*Gauge](func() *Gauge { return NewGauge(GaugeOpts{}) }, labels...),
 		&Description{
 			Name: opts.Name,
-			Type: "gauge_vector",
+			Type: "gauge",
 			Help: opts.Help,
 		},
 	}

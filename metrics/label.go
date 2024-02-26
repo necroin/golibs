@@ -55,7 +55,7 @@ func NewLabelVector(opts LabelOpts, labels ...string) *LabelVector {
 		NewMetricVector[*Label](func() *Label { return NewLabel(LabelOpts{}) }, labels...),
 		&Description{
 			Name: opts.Name,
-			Type: "label_vector",
+			Type: "label",
 			Help: opts.Help,
 		},
 	}

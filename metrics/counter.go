@@ -63,7 +63,7 @@ func NewCounterVector(opts CounterOpts, labels ...string) *CounterVector {
 		NewMetricVector[*Counter](func() *Counter { return NewCounter(CounterOpts{}) }, labels...),
 		&Description{
 			Name: opts.Name,
-			Type: "counter_vector",
+			Type: "counter",
 			Help: opts.Help,
 		},
 	}
