@@ -33,15 +33,17 @@ func (parser *Parser[T]) Parse(tokens ...Token[T]) error {
 	fmt.Println(parser.rules)
 
 	offset := 0
-	for len(tokens) > 1 {
-		fmt.Printf("Iteration tokens: %s\n", tokens)
-		fmt.Printf("Iteration offset: %d\n", offset)
+	matched := false
+
+	for len(tokens) > 1 || matched {
+		// fmt.Printf("Iteration tokens: %s\n", tokens)
+		// fmt.Printf("Iteration offset: %d\n", offset)
 		if offset == len(tokens) {
 			return fmt.Errorf("failed parse tokens: %s", tokens)
 		}
-		matched := false
+		matched = false
 		for _, rule := range parser.rules {
-			fmt.Printf("Rule: %s\n", rule)
+			// fmt.Printf("Rule: %s\n", rule)
 
 			ruleTokensCount := len(rule.tokens)
 			tokensCount := len(tokens)
@@ -49,7 +51,7 @@ func (parser *Parser[T]) Parse(tokens ...Token[T]) error {
 				continue
 			}
 			matchTokens := tokens[offset : ruleTokensCount+offset]
-			fmt.Printf("Match tokens: %s\n", matchTokens)
+			// fmt.Printf("Match tokens: %s\n", matchTokens)
 			if rule.CompareTokens(matchTokens) {
 				fmt.Printf("Reduce by rule: %s\n", rule)
 				newTokens := append(tokens[:offset], NewParserToken[T](rule.name, rule.handler(matchTokens)))
