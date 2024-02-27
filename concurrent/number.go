@@ -31,22 +31,25 @@ func (atomic *AtomicNumber[T]) Set(value T) {
 	atomic.value = value
 }
 
-func (atomic *AtomicNumber[T]) Add(value T) {
+func (atomic *AtomicNumber[T]) Add(value T) T {
 	atomic.mutex.Lock()
 	defer atomic.mutex.Unlock()
 	atomic.value += value
+	return atomic.value
 }
 
-func (atomic *AtomicNumber[T]) Sub(value T) {
+func (atomic *AtomicNumber[T]) Sub(value T) T {
 	atomic.mutex.Lock()
 	defer atomic.mutex.Unlock()
 	atomic.value -= value
+	return atomic.value
 }
 
-func (atomic *AtomicNumber[T]) Inc() {
-	atomic.Add(1)
+func (atomic *AtomicNumber[T]) Inc() T {
+	return atomic.Add(1)
+
 }
 
-func (atomic *AtomicNumber[T]) Dec() {
-	atomic.Sub(1)
+func (atomic *AtomicNumber[T]) Dec() T {
+	return atomic.Sub(1)
 }

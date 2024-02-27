@@ -119,10 +119,10 @@ ___
 	- Methods:
 		- `Get() T`
 		- `Set(value T)`
-		- `Add(value T)`
-		- `Sub(value T)`
-		- `Inc()`
-		- `Dec()`
+		- `Add(value T) T`
+		- `Sub(value T) T`
+		- `Inc() T`
+		- `Dec() T`
 - `ConcurrentMap[K,V]`
 	- Functions:
 		- `NewConcurrentMap[K comparable, V any]() *ConcurrentMap[K, V]` - Constructs a new container.
