@@ -99,7 +99,7 @@ func (histogram *Histogram) Write(writer io.Writer) {
 	count := float64(0)
 	minusInf := histogram.minusInf
 	count += minusInf.Get()
-	writer.Write([]byte(fmt.Sprintf("%s{-Inf} %v\n", histogram.description.Name, minusInf.Get())))
+	writer.Write([]byte(fmt.Sprintf("%s{le=\"-Inf\"} %v\n", histogram.description.Name, minusInf.Get())))
 
 	for bucketIterator := 0; bucketIterator < int(histogram.buckets.Count); bucketIterator++ {
 		counter, _ := histogram.values.At(uint(bucketIterator))
@@ -116,7 +116,7 @@ func (histogram *Histogram) Write(writer io.Writer) {
 
 	plusInf := histogram.plusInf
 	count += plusInf.Get()
-	writer.Write([]byte(fmt.Sprintf("%s{+Inf} %v\n", histogram.description.Name, plusInf.Get())))
+	writer.Write([]byte(fmt.Sprintf("%s{ge=\"+Inf\"} %v\n", histogram.description.Name, plusInf.Get())))
 	writer.Write([]byte(fmt.Sprintf("%s_sum %v\n", histogram.description.Name, sum)))
 	writer.Write([]byte(fmt.Sprintf("%s_count %v\n", histogram.description.Name, count)))
 }
