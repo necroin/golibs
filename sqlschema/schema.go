@@ -123,7 +123,7 @@ func getPreviousSchema(db *sql.DB) ([]byte, error) {
 	return data, nil
 }
 
-func initMetadata(db *sql.DB, data []byte) error {
+func initMetadata(db *sql.DB) error {
 	table := Table{
 		Name: "__Schema",
 		Fields: []TableField{
@@ -145,7 +145,7 @@ func initMetadata(db *sql.DB, data []byte) error {
 		return fmt.Errorf("[SQLschema] [Error] failed init migration table : %s", err)
 	}
 
-	db.Exec("INSERT INTO __Schema (version, data) VALUEs('current','[]')")
+	db.Exec("INSERT INTO __Schema (version, data) VALUES('current','[]')")
 
 	return nil
 }
@@ -283,7 +283,7 @@ func schemaUpgrade(db *sql.DB, currentSchema []Table, previousSchema []Table) er
 }
 
 func migration(db *sql.DB, currentSchemaData []byte) error {
-	if err := initMetadata(db, currentSchemaData); err != nil {
+	if err := initMetadata(db); err != nil {
 		return err
 	}
 
