@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/necroin/golibs/csv"
-	"github.com/necroin/golibs/csv/utils"
+	"github.com/necroin/golibs/utils"
 )
 
 const (

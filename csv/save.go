@@ -6,7 +6,7 @@ import (
 	"io"
 	"reflect"
 
-	"github.com/necroin/golibs/csv/utils"
+	"github.com/necroin/golibs/utils"
 )
 
 func Marshal[T any](dataWriter io.Writer, data []T) error {

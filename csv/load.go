@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/necroin/golibs/csv/utils"
+	"github.com/necroin/golibs/utils"
 )
 
 func UnmarshalData[T any](data []byte, result *[]T) error {
