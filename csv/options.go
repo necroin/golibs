@@ -1,5 +1,7 @@
 package csv
 
+import "reflect"
+
 type Options struct {
 	// Field delimiter (set to ',' by default)
 	Delimiter rune
@@ -27,4 +29,16 @@ type Options struct {
 	TrimQuotes bool
 	// Parse Tag
 	Tag string
+	// Uses for custom objects (reflect by default)
+	AdapterFunc func(reflect.Value) Adapter
+}
+
+func (options *Options) SetDefaults() {
+	if options.Tag == "" {
+		options.Tag = "csv"
+	}
+
+	if options.AdapterFunc == nil {
+		options.AdapterFunc = NewReflectAdapter
+	}
 }

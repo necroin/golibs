@@ -14,6 +14,8 @@ func Marshal[T any](dataWriter io.Writer, data []T) error {
 }
 
 func MarshalWithOptions[T any](dataWriter io.Writer, data []T, options Options) error {
+	options.SetDefaults()
+
 	writer := csv.NewWriter(dataWriter)
 
 	if options.Delimiter != 0 {
@@ -21,18 +23,14 @@ func MarshalWithOptions[T any](dataWriter io.Writer, data []T, options Options) 
 	}
 	writer.UseCRLF = options.UseCRLF
 
-	if options.Tag == "" {
-		options.Tag = "csv"
-	}
-
-	headers, err := findHeaders(reflect.ValueOf(utils.InstantiateSliceElement(&data)), options)
+	headers, err := findHeaders(options.AdapterFunc(reflect.ValueOf(utils.InstantiateSliceElement(&data))), options)
 	if err != nil {
 		return err
 	}
 	writer.Write(headers)
 	writer.Flush()
 	for _, row := range data {
-		record, err := buildRecord(reflect.ValueOf(row), options)
+		record, err := buildRecord(options.AdapterFunc(reflect.ValueOf(row)), options)
 		if err != nil {
 			return err
 		}
@@ -42,25 +40,24 @@ func MarshalWithOptions[T any](dataWriter io.Writer, data []T, options Options) 
 	return nil
 }
 
-func findHeaders(value reflect.Value, options Options) ([]string, error) {
+func findHeaders(value Adapter, options Options) ([]string, error) {
 	result := []string{}
 
-	if value.Type().Kind() == reflect.Pointer {
-		value = value.Elem()
+	if value.IsPointer() {
+		value = value.Deref()
 	}
 
 	for fieldIndex := 0; fieldIndex < value.NumField(); fieldIndex++ {
-		rvfield := value.Field(fieldIndex)
-		rtField := value.Type().Field(fieldIndex)
-		if utils.IsStruct(rvfield) {
-			record, err := findHeaders(rvfield, options)
+		field := value.Field(fieldIndex)
+		if field.IsStruct() {
+			record, err := findHeaders(field, options)
 			if err != nil {
 				return result, err
 			}
 			result = append(result, record...)
 		}
 
-		tag := rtField.Tag.Get(options.Tag)
+		tag := field.GetTag(options.Tag)
 		if tag == "" || tag == "-" {
 			continue
 		}
@@ -70,38 +67,37 @@ func findHeaders(value reflect.Value, options Options) ([]string, error) {
 	return result, nil
 }
 
-func buildRecord(value reflect.Value, options Options) ([]string, error) {
+func buildRecord(value Adapter, options Options) ([]string, error) {
 	result := []string{}
 
-	if value.Type().Kind() == reflect.Pointer {
-		value = value.Elem()
+	if value.IsPointer() {
+		value = value.Deref()
 	}
 
 	for fieldIndex := 0; fieldIndex < value.NumField(); fieldIndex++ {
-		rvField := value.Field(fieldIndex)
-		rtField := value.Type().Field(fieldIndex)
+		field := value.Field(fieldIndex)
 
-		if utils.IsStruct(rvField) {
-			record, err := buildRecord(rvField, options)
+		if field.IsStruct() {
+			record, err := buildRecord(field, options)
 			if err != nil {
 				return result, err
 			}
 			result = append(result, record...)
 		}
 
-		tag := rtField.Tag.Get(options.Tag)
+		tag := field.GetTag(options.Tag)
 		if tag == "" || tag == "-" {
 			continue
 		}
 
-		if rvField.Type().Kind() == reflect.Pointer {
-			if rvField.IsNil() {
+		if field.IsPointer() {
+			if field.IsNil() {
 				result = append(result, "")
 				continue
 			}
-			rvField = rvField.Elem()
+			field = field.Deref()
 		}
-		result = append(result, fmt.Sprintf("%v", rvField.Interface()))
+		result = append(result, fmt.Sprintf("%v", field.Get()))
 	}
 	return result, nil
 }

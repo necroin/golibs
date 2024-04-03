@@ -25,6 +25,8 @@ func UnmarshalDataWithOptions[T any](data []byte, result *[]T, options Options) 
 }
 
 func UnmarshalWithOptions[T any](dataReader io.Reader, result *[]T, options Options) error {
+	options.SetDefaults()
+
 	reader := csv.NewReader(dataReader)
 
 	if options.Delimiter != 0 {
@@ -34,10 +36,6 @@ func UnmarshalWithOptions[T any](dataReader io.Reader, result *[]T, options Opti
 	reader.FieldsPerRecord = options.FieldsPerRecord
 	reader.LazyQuotes = options.LazyQuotes
 	reader.TrimLeadingSpace = options.TrimLeadingSpace
-
-	if options.Tag == "" {
-		options.Tag = "csv"
-	}
 
 	columnsList, err := reader.Read()
 	if err != nil {
@@ -71,9 +69,10 @@ func UnmarshalWithOptions[T any](dataReader io.Reader, result *[]T, options Opti
 func AddRecord[T any](result *[]T, data []string, columns map[string]int, options Options) error {
 	record := utils.InstantiateSliceElement(result)
 	rvRecord := reflect.Indirect(reflect.ValueOf(record))
+	reflectAdapter := options.AdapterFunc(rvRecord)
 
-	if utils.IsStruct(rvRecord) {
-		if err := fillStruct(rvRecord, data, columns, options); err != nil {
+	if reflectAdapter.IsStruct() {
+		if err := fillStruct(reflectAdapter, data, columns, options); err != nil {
 			return err
 		}
 	}
@@ -82,24 +81,23 @@ func AddRecord[T any](result *[]T, data []string, columns map[string]int, option
 	return nil
 }
 
-func fillStruct(rValue reflect.Value, data []string, columns map[string]int, options Options) error {
-	if rValue.Type().Kind() == reflect.Pointer {
-		rValue.Set(reflect.New(rValue.Type().Elem()))
-		rValue = rValue.Elem()
+func fillStruct(structValue Adapter, data []string, columns map[string]int, options Options) error {
+	if structValue.IsPointer() {
+		structValue.Set(structValue.New().Get())
+		structValue = structValue.Deref()
 	}
 
-	for fieldIndex := 0; fieldIndex < rValue.NumField(); fieldIndex++ {
-		rvField := rValue.Field(fieldIndex)
-		rtField := rValue.Type().Field(fieldIndex)
+	for fieldIndex := 0; fieldIndex < structValue.NumField(); fieldIndex++ {
+		field := structValue.Field(fieldIndex)
 
-		if utils.IsStruct(rvField) {
-			if err := fillStruct(rValue.Field(fieldIndex), data, columns, options); err != nil {
+		if field.IsStruct() {
+			if err := fillStruct(structValue.Field(fieldIndex), data, columns, options); err != nil {
 				return err
 			}
 			continue
 		}
 
-		tag := rtField.Tag.Get(options.Tag)
+		tag := field.GetTag(options.Tag)
 		if tag == "" || tag == "-" {
 			continue
 		}
@@ -113,14 +111,14 @@ func fillStruct(rValue reflect.Value, data []string, columns map[string]int, opt
 			continue
 		}
 
-		if err := setValue(rValue.Field(fieldIndex), data[columnIndex], options); err != nil {
+		if err := setValue(structValue.Field(fieldIndex), data[columnIndex], options); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func setValue(field reflect.Value, data string, options Options) error {
+func setValue(field Adapter, data string, options Options) error {
 	if options.TrimSpace {
 		data = strings.TrimSpace(data)
 	}
@@ -133,9 +131,10 @@ func setValue(field reflect.Value, data string, options Options) error {
 		data = strings.Trim(data, "\"")
 	}
 
-	if field.Kind() == reflect.Pointer {
-		field.Set(reflect.New(field.Type().Elem()))
-		field = field.Elem()
+	if field.IsPointer() {
+		fmt.Println("Deref")
+		field.Set(field.New().Get())
+		field = field.Deref()
 	}
 
 	switch field.Kind() {
