@@ -69,10 +69,10 @@ func UnmarshalWithOptions[T any](dataReader io.Reader, result *[]T, options Opti
 func AddRecord[T any](result *[]T, data []string, columns map[string]int, options Options) error {
 	record := utils.InstantiateSliceElement(result)
 	rvRecord := reflect.Indirect(reflect.ValueOf(record))
-	reflectAdapter := options.AdapterFunc(rvRecord)
+	adapter := options.AdapterFunc(rvRecord)
 
-	if reflectAdapter.IsStruct() {
-		if err := fillStruct(reflectAdapter, data, columns, options); err != nil {
+	if adapter.IsStruct() {
+		if err := fillStruct(adapter, data, columns, options); err != nil {
 			return err
 		}
 	}
@@ -132,7 +132,6 @@ func setValue(field Adapter, data string, options Options) error {
 	}
 
 	if field.IsPointer() {
-		fmt.Println("Deref")
 		field.Set(field.New().Get())
 		field = field.Deref()
 	}

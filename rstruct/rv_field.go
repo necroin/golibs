@@ -3,14 +3,19 @@ package rstruct
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 )
 
 type RVField struct {
 	value any
+	kind  reflect.Kind
 }
 
-func (rvf *RVField) Set(valua any) {
-	rvf.value = valua
+func (rvf *RVField) Set(value any) {
+	if value != nil {
+		rvf.kind = reflect.TypeOf(value).Kind()
+	}
+	rvf.value = value
 }
 
 func (rvf *RVField) Get() any {
@@ -30,4 +35,29 @@ func (rvf *RVField) ToJSON() ([]byte, error) {
 
 func (rvf *RVField) MarshalText() ([]byte, error) {
 	return rvf.ToJSON()
+}
+
+func (rvf *RVField) IsNil() bool {
+	return rvf.value == nil
+}
+
+func (rvf *RVField) Kind() reflect.Kind {
+	if rvf.kind != 0 {
+		return rvf.kind
+	}
+	return reflect.TypeOf(rvf.value).Kind()
+}
+
+func (rvf *RVField) IsPointer() bool {
+	if rvf.IsNil() {
+		return true
+	}
+	return rvf.Kind() == reflect.Pointer
+}
+
+func (rvf *RVField) IsStruct() bool {
+	if rvf.IsNil() {
+		return false
+	}
+	return rvf.Kind() == reflect.Struct
 }

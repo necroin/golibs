@@ -1,4 +1,4 @@
-package tests
+package csv_tests
 
 type CommonRow struct {
 	FirstHeaderValue  string `csv:"Header1"`

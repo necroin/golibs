@@ -2,6 +2,7 @@ package rstruct
 
 import (
 	"fmt"
+	"reflect"
 )
 
 type RTStruct struct {
@@ -50,6 +51,23 @@ func (rts *RTStruct) AddFields(fields ...*RTField) error {
 	for _, field := range fields {
 		if err := rts.AddField(field); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+func (rts *RTStruct) Extend(values ...any) error {
+	for _, value := range values {
+		rvValue := reflect.ValueOf(value)
+		rtValue := reflect.TypeOf(value)
+
+		for i := 0; i < rvValue.NumField(); i++ {
+			field := rtValue.Field(i)
+			newField := NewRTField(field.Name, reflect.Zero(field.Type).Interface())
+			rts.AddField(newField)
+
+			// tags := string(field.Tag)
+			// tagsList := strings.Split(tags, " ")
 		}
 	}
 	return nil

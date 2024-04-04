@@ -1,4 +1,4 @@
-package tests
+package csv_tests
 
 import (
 	"os"
