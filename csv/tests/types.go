@@ -1,15 +1,15 @@
 package csv_tests
 
 type CommonRow struct {
-	FirstHeaderValue  string `csv:"Header1"`
-	SecondHeaderValue string `csv:"Header2"`
-	ThirdHeaderValue  string `csv:"Header3"`
+	FirstHeaderValue  string `csv:"Header1" json:"Header1"`
+	SecondHeaderValue string `csv:"Header2" json:"Header2"`
+	ThirdHeaderValue  string `csv:"Header3" json:"Header3"`
 }
 
 type PointerRow struct {
-	FirstHeaderValue  *string `csv:"Header1"`
-	SecondHeaderValue *string `csv:"Header2"`
-	ThirdHeaderValue  *string `csv:"Header3"`
+	FirstHeaderValue  *string `csv:"Header1" json:"Header1"`
+	SecondHeaderValue *string `csv:"Header2" json:"Header2"`
+	ThirdHeaderValue  *string `csv:"Header3" json:"Header3"`
 }
 
 type NestedRowValue struct {

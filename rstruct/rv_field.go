@@ -30,12 +30,8 @@ func (rvf *RVField) String() string {
 	return fmt.Sprintf("%v", rvf.value)
 }
 
-func (rvf *RVField) ToJSON() ([]byte, error) {
+func (rvf *RVField) ToJson() ([]byte, error) {
 	return json.Marshal(rvf.value)
-}
-
-func (rvf *RVField) MarshalText() ([]byte, error) {
-	return rvf.ToJSON()
 }
 
 func (rvf *RVField) IsNil() bool {

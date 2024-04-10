@@ -8,10 +8,7 @@ import (
 
 type CSVAdapter struct {
 	structValue *RVStruct
-	structType  *RTStruct
-
-	fieldValue *RVField
-	fieldType  *RTField
+	fieldValue  *RVField
 }
 
 func NewCSVAdapter(structType *RTStruct, value reflect.Value) csv.Adapter {
@@ -25,7 +22,7 @@ func NewCSVAdapter(structType *RTStruct, value reflect.Value) csv.Adapter {
 	castedValue.fieldsByName = instance.fieldsByName
 	return &CSVAdapter{
 		structValue: castedValue,
-		structType:  structType,
+		fieldValue:  nil,
 	}
 }
 
@@ -80,8 +77,12 @@ func (csva *CSVAdapter) Get() any {
 func (csva *CSVAdapter) New() csv.Adapter {
 	if csva.fieldValue != nil {
 		csva.fieldValue.value = ""
+		return csva
 	}
-	return csva
+	return &CSVAdapter{
+		structValue: csva.structValue.rtStruct.New(),
+		fieldValue:  nil,
+	}
 }
 
 func (csva *CSVAdapter) Deref() csv.Adapter {
@@ -91,9 +92,7 @@ func (csva *CSVAdapter) Deref() csv.Adapter {
 func (csva *CSVAdapter) Field(index int) csv.Adapter {
 	return &CSVAdapter{
 		structValue: nil,
-		structType:  nil,
 		fieldValue:  csva.structValue.fields[index],
-		fieldType:   csva.structType.fields[index],
 	}
 }
 
@@ -102,7 +101,7 @@ func (csva *CSVAdapter) NumField() int {
 }
 
 func (csva *CSVAdapter) GetTag(key string) string {
-	return csva.fieldType.tags[key]
+	return csva.fieldValue.rtField.tags[key]
 }
 
 func (csva *CSVAdapter) SetString(value string) {

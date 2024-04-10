@@ -14,15 +14,15 @@ type RVStruct struct {
 func (rvs *RVStruct) String() string {
 	return fmt.Sprintf("%v", rvs.fieldsByName)
 }
-func (rvs *RVStruct) Encode(tag string) ([]byte, error) {
-	jsonFieldsByName := map[string]*RVField{}
+func (rvs *RVStruct) ToJson(tag string) ([]byte, error) {
+	jsonFieldsByName := map[string]any{}
 
 	for fieldName, field := range rvs.fieldsByName {
 		tagValue, ok := field.rtField.GetTag(tag)
 		if !ok {
 			tagValue = fieldName
 		}
-		jsonFieldsByName[tagValue] = field
+		jsonFieldsByName[tagValue] = field.value
 	}
 
 	return json.Marshal(jsonFieldsByName)

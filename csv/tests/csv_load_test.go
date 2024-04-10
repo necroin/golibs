@@ -15,18 +15,24 @@ const (
 	dataPath = "../assets"
 )
 
-func TestLoad_Common(t *testing.T) {
+func LoadAssertFunc[M any, N any](t *testing.T, rows []M, expected []N) {
+	if cmp.Equal(rows, expected) == false {
+		t.Error(rows)
+	}
+}
+
+func Load_CommonTemplate[T any](t *testing.T, dataPath string, assertFunc func(t *testing.T, rows []T, expected []CommonRow)) {
 	data, err := os.ReadFile(path.Join(dataPath, "common.csv"))
 	if err != nil {
 		t.Error(err)
 	}
 
-	rows := []CommonRow{}
+	rows := []T{}
 	if err := csv.UnmarshalData(data, &rows); err != nil {
 		t.Error(err)
 	}
 
-	if cmp.Equal(rows, []CommonRow{
+	expected := []CommonRow{
 		{
 			FirstHeaderValue:  "R1V1",
 			SecondHeaderValue: "R1V2",
@@ -42,23 +48,27 @@ func TestLoad_Common(t *testing.T) {
 			SecondHeaderValue: "R3V2",
 			ThirdHeaderValue:  "R3V3",
 		},
-	}) == false {
-		t.Error(rows)
 	}
+
+	assertFunc(t, rows, expected)
 }
 
-func TestLoad_Pointer(t *testing.T) {
+func TestLoad_Common(t *testing.T) {
+	Load_CommonTemplate[CommonRow](t, dataPath, LoadAssertFunc)
+}
+
+func Load_PointerTemplate[T any](t *testing.T, dataPath string, assertFunc func(t *testing.T, rows []T, expected []PointerRow)) {
 	data, err := os.ReadFile(path.Join(dataPath, "common.csv"))
 	if err != nil {
 		t.Error(err)
 	}
 
-	rows := []PointerRow{}
+	rows := []T{}
 	if err := csv.UnmarshalData(data, &rows); err != nil {
 		t.Error(err)
 	}
 
-	if cmp.Equal(rows, []PointerRow{
+	expected := []PointerRow{
 		{
 			FirstHeaderValue:  utils.PointerOf("R1V1"),
 			SecondHeaderValue: utils.PointerOf("R1V2"),
@@ -74,9 +84,13 @@ func TestLoad_Pointer(t *testing.T) {
 			SecondHeaderValue: utils.PointerOf("R3V2"),
 			ThirdHeaderValue:  utils.PointerOf("R3V3"),
 		},
-	}) == false {
-		t.Error(rows)
 	}
+
+	assertFunc(t, rows, expected)
+}
+
+func TestLoad_Pointer(t *testing.T) {
+	Load_PointerTemplate[PointerRow](t, dataPath, LoadAssertFunc)
 }
 
 func TestLoad_Pointer_Nil(t *testing.T) {
