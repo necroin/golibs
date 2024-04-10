@@ -6,6 +6,7 @@ import (
 )
 
 type RVStruct struct {
+	rtStruct     *RTStruct
 	fields       []*RVField
 	fieldsByName map[string]*RVField
 }
@@ -13,8 +14,18 @@ type RVStruct struct {
 func (rvs *RVStruct) String() string {
 	return fmt.Sprintf("%v", rvs.fieldsByName)
 }
-func (rvs *RVStruct) ToJSON() ([]byte, error) {
-	return json.Marshal(rvs.fieldsByName)
+func (rvs *RVStruct) Encode(tag string) ([]byte, error) {
+	jsonFieldsByName := map[string]*RVField{}
+
+	for fieldName, field := range rvs.fieldsByName {
+		tagValue, ok := field.rtField.GetTag(tag)
+		if !ok {
+			tagValue = fieldName
+		}
+		jsonFieldsByName[tagValue] = field
+	}
+
+	return json.Marshal(jsonFieldsByName)
 }
 
 func (rvs *RVStruct) SetByIndex(index int, value any) {

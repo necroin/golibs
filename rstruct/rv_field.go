@@ -7,8 +7,9 @@ import (
 )
 
 type RVField struct {
-	value any
-	kind  reflect.Kind
+	rtField *RTField
+	value   any
+	kind    reflect.Kind
 }
 
 func (rvf *RVField) Set(value any) {

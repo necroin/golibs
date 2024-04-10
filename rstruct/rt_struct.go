@@ -5,6 +5,11 @@ import (
 	"reflect"
 )
 
+type ExtendData struct {
+	Value any
+	Tags  []string
+}
+
 type RTStruct struct {
 	fields       []*RTField
 	fieldsByName map[string]*RTField
@@ -23,13 +28,15 @@ func (rts *RTStruct) New() *RVStruct {
 
 	for _, tField := range rts.fields {
 		vField := &RVField{
-			value: tField.defaultValue,
+			rtField: tField,
+			value:   tField.defaultValue,
 		}
 		vFields = append(vFields, vField)
 		vFieldsByName[tField.name] = vField
 	}
 
 	return &RVStruct{
+		rtStruct:     rts,
 		fields:       vFields,
 		fieldsByName: vFieldsByName,
 	}
@@ -56,18 +63,24 @@ func (rts *RTStruct) AddFields(fields ...*RTField) error {
 	return nil
 }
 
-func (rts *RTStruct) Extend(values ...any) error {
-	for _, value := range values {
-		rvValue := reflect.ValueOf(value)
-		rtValue := reflect.TypeOf(value)
+func (rts *RTStruct) Extend(extendValues ...ExtendData) error {
+	for _, extendValue := range extendValues {
+		rvValue := reflect.ValueOf(extendValue.Value)
+		rtValue := reflect.TypeOf(extendValue.Value)
 
 		for i := 0; i < rvValue.NumField(); i++ {
 			field := rtValue.Field(i)
 			newField := NewRTField(field.Name, reflect.Zero(field.Type).Interface())
-			rts.AddField(newField)
 
-			// tags := string(field.Tag)
-			// tagsList := strings.Split(tags, " ")
+			for _, tagName := range extendValue.Tags {
+				tag := field.Tag.Get(tagName)
+				if tag == "" || tag == "-" {
+					continue
+				}
+				newField.SetTag(tagName, tag)
+			}
+
+			rts.AddField(newField)
 		}
 	}
 	return nil
