@@ -28,18 +28,10 @@ func (rvs *RVStruct) ToJson(tag string) ([]byte, error) {
 	return json.Marshal(jsonFieldsByName)
 }
 
-func (rvs *RVStruct) SetByIndex(index int, value any) {
-	rvs.fields[index].value = value
-}
-
-func (rvs *RVStruct) SetByName(name string, value any) {
-	rvs.fieldsByName[name].value = value
-}
-
-func (rvs *RVStruct) GetByIndex(index int) *RVField {
+func (rvs *RVStruct) FieldByIndex(index int) *RVField {
 	return rvs.fields[index]
 }
 
-func (rvs *RVStruct) GetByName(name string) *RVField {
+func (rvs *RVStruct) FieldByName(name string) *RVField {
 	return rvs.fieldsByName[name]
 }

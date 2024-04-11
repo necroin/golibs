@@ -9,13 +9,9 @@ import (
 type RVField struct {
 	rtField *RTField
 	value   any
-	kind    reflect.Kind
 }
 
 func (rvf *RVField) Set(value any) {
-	if value != nil {
-		rvf.kind = reflect.TypeOf(value).Kind()
-	}
 	rvf.value = value
 }
 
@@ -39,22 +35,16 @@ func (rvf *RVField) IsNil() bool {
 }
 
 func (rvf *RVField) Kind() reflect.Kind {
-	if rvf.kind != 0 {
-		return rvf.kind
+	if rvf.IsNil() {
+		return reflect.Pointer
 	}
 	return reflect.TypeOf(rvf.value).Kind()
 }
 
 func (rvf *RVField) IsPointer() bool {
-	if rvf.IsNil() {
-		return true
-	}
 	return rvf.Kind() == reflect.Pointer
 }
 
 func (rvf *RVField) IsStruct() bool {
-	if rvf.IsNil() {
-		return false
-	}
 	return rvf.Kind() == reflect.Struct
 }

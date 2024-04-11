@@ -32,9 +32,9 @@ func LoadAssertFunc[T any](t *testing.T, rows []rstruct.RVStruct, cmpResult []T)
 
 func TestCSVLoad_Common(t *testing.T) {
 	customStruct := rstruct.NewStruct()
-	err := customStruct.Extend(rstruct.ExtendData{
+	err := customStruct.Extend(rstruct.ExtendOption{
 		Value: csv_tests.CommonRow{},
-		Tags:  []string{"csv"},
+		Tags:  map[string]string{"csv": "csv"},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -77,9 +77,9 @@ func TestCSVLoad_Common(t *testing.T) {
 
 func TestLoad_Pointer_Nil(t *testing.T) {
 	customStruct := rstruct.NewStruct()
-	err := customStruct.Extend(rstruct.ExtendData{
+	err := customStruct.Extend(rstruct.ExtendOption{
 		Value: csv_tests.PointerRow{},
-		Tags:  []string{"csv"},
+		Tags:  map[string]string{"csv": "csv"},
 	})
 	if err != nil {
 		t.Fatal(err)
