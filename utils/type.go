@@ -8,8 +8,12 @@ func IsPointer(value reflect.Value) bool {
 	return value.Type().Kind() == reflect.Pointer
 }
 
+func IsInterface(value reflect.Value) bool {
+	return value.Type().Kind() == reflect.Interface
+}
+
 func IsStruct(value reflect.Value) bool {
-	return value.Type().Kind() == reflect.Struct || (IsPointer(value) && value.Type().Elem().Kind() == reflect.Struct)
+	return value.Type().Kind() == reflect.Struct || (IsPointer(value) && value.Elem().Kind() == reflect.Struct)
 }
 
 func IsSlice(value reflect.Value) bool {
@@ -18,10 +22,6 @@ func IsSlice(value reflect.Value) bool {
 
 func IsMap(value reflect.Value) bool {
 	return value.Type().Kind() == reflect.Map || (IsPointer(value) && value.Type().Elem().Kind() == reflect.Map)
-}
-
-func IsInterface(value reflect.Value) bool {
-	return value.Type().Kind() == reflect.Interface
 }
 
 func IsNil(value reflect.Value) bool {

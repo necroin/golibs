@@ -17,7 +17,7 @@ const (
 	csvDataPath = "../../csv/assets"
 )
 
-func LoadAssertFunc[T any](t *testing.T, rows []rstruct.RVStruct, cmpResult []T) {
+func LoadAssert[T any](t *testing.T, rows []rstruct.RVStruct, cmpResult []T) {
 	for i := 0; i < len(rows); i++ {
 		row := rows[i]
 		cmpRow := cmpResult[i]
@@ -72,7 +72,52 @@ func TestCSVLoad_Common(t *testing.T) {
 		},
 	}
 
-	CompareCsvResults(t, rows, cmpResult)
+	LoadAssert(t, rows, cmpResult)
+}
+
+func TestLoad_Pointer(t *testing.T) {
+	customStruct := rstruct.NewStruct()
+	err := customStruct.Extend(rstruct.ExtendOption{
+		Value: csv_tests.PointerRow{},
+		Tags:  map[string]string{"csv": "csv"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(path.Join(csvDataPath, "common.csv"))
+	if err != nil {
+		t.Error(err)
+	}
+
+	rows := []rstruct.RVStruct{}
+	if err := csv.UnmarshalDataWithOptions(data, &rows, csv.Options{
+		AdapterFunc: func(value reflect.Value) csv.Adapter {
+			return rstruct.NewCSVAdapter(customStruct, value)
+		},
+	}); err != nil {
+		t.Error(err)
+	}
+
+	expected := []csv_tests.PointerRow{
+		{
+			FirstHeaderValue:  utils.PointerOf("R1V1"),
+			SecondHeaderValue: utils.PointerOf("R1V2"),
+			ThirdHeaderValue:  utils.PointerOf("R1V3"),
+		},
+		{
+			FirstHeaderValue:  utils.PointerOf("R2V1"),
+			SecondHeaderValue: utils.PointerOf("R2V2"),
+			ThirdHeaderValue:  utils.PointerOf("R2V3"),
+		},
+		{
+			FirstHeaderValue:  utils.PointerOf("R3V1"),
+			SecondHeaderValue: utils.PointerOf("R3V2"),
+			ThirdHeaderValue:  utils.PointerOf("R3V3"),
+		},
+	}
+
+	LoadAssert(t, rows, expected)
 }
 
 func TestLoad_Pointer_Nil(t *testing.T) {
@@ -122,5 +167,57 @@ func TestLoad_Pointer_Nil(t *testing.T) {
 		},
 	}
 
-	CompareCsvResults(t, rows, cmpResult)
+	LoadAssert(t, rows, cmpResult)
+}
+
+func TestLoad_Nested(t *testing.T) {
+	customStruct := rstruct.NewStruct()
+	err := customStruct.Extend(rstruct.ExtendOption{
+		Value: csv_tests.NestedRow{},
+		Tags:  map[string]string{"csv": "csv"},
+		// IsFlat: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(path.Join(csvDataPath, "common.csv"))
+	if err != nil {
+		t.Error(err)
+	}
+
+	rows := []rstruct.RVStruct{}
+	if err := csv.UnmarshalDataWithOptions(data, &rows, csv.Options{
+		AdapterFunc: func(value reflect.Value) csv.Adapter {
+			return rstruct.NewCSVAdapter(customStruct, value)
+		},
+	}); err != nil {
+		t.Error(err)
+	}
+
+	expected := []csv_tests.NestedRow{
+		{
+			FirstHeaderValue: "R1V1",
+			NestedValue: csv_tests.NestedRowValue{
+				SecondHeaderValue: "R1V2",
+				ThirdHeaderValue:  "R1V3",
+			},
+		},
+		{
+			FirstHeaderValue: "R2V1",
+			NestedValue: csv_tests.NestedRowValue{
+				SecondHeaderValue: "R2V2",
+				ThirdHeaderValue:  "R2V3",
+			},
+		},
+		{
+			FirstHeaderValue: "R3V1",
+			NestedValue: csv_tests.NestedRowValue{
+				SecondHeaderValue: "R3V2",
+				ThirdHeaderValue:  "R3V3",
+			},
+		},
+	}
+
+	LoadAssert(t, rows, expected)
 }

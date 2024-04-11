@@ -13,12 +13,12 @@ type PointerRow struct {
 }
 
 type NestedRowValue struct {
-	SecondHeaderValue string `csv:"Header2"`
-	ThirdHeaderValue  string `csv:"Header3"`
+	SecondHeaderValue string `csv:"Header2" json:"Header2"`
+	ThirdHeaderValue  string `csv:"Header3" json:"Header3"`
 }
 
 type NestedRow struct {
-	FirstHeaderValue string `csv:"Header1"`
+	FirstHeaderValue string `csv:"Header1" json:"Header1"`
 	NestedValue      NestedRowValue
 }
 

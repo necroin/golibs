@@ -15,19 +15,19 @@ const (
 	dataPath = "../assets"
 )
 
-func LoadAssertFunc[M any, N any](t *testing.T, rows []M, expected []N) {
+func LoadAssert[M any, N any](t *testing.T, rows []M, expected []N) {
 	if cmp.Equal(rows, expected) == false {
 		t.Error(rows)
 	}
 }
 
-func Load_CommonTemplate[T any](t *testing.T, dataPath string, assertFunc func(t *testing.T, rows []T, expected []CommonRow)) {
+func TestLoad_Common(t *testing.T) {
 	data, err := os.ReadFile(path.Join(dataPath, "common.csv"))
 	if err != nil {
 		t.Error(err)
 	}
 
-	rows := []T{}
+	rows := []CommonRow{}
 	if err := csv.UnmarshalData(data, &rows); err != nil {
 		t.Error(err)
 	}
@@ -50,20 +50,16 @@ func Load_CommonTemplate[T any](t *testing.T, dataPath string, assertFunc func(t
 		},
 	}
 
-	assertFunc(t, rows, expected)
+	LoadAssert(t, rows, expected)
 }
 
-func TestLoad_Common(t *testing.T) {
-	Load_CommonTemplate[CommonRow](t, dataPath, LoadAssertFunc)
-}
-
-func Load_PointerTemplate[T any](t *testing.T, dataPath string, assertFunc func(t *testing.T, rows []T, expected []PointerRow)) {
+func TestLoad_Pointer(t *testing.T) {
 	data, err := os.ReadFile(path.Join(dataPath, "common.csv"))
 	if err != nil {
 		t.Error(err)
 	}
 
-	rows := []T{}
+	rows := []PointerRow{}
 	if err := csv.UnmarshalData(data, &rows); err != nil {
 		t.Error(err)
 	}
@@ -86,11 +82,7 @@ func Load_PointerTemplate[T any](t *testing.T, dataPath string, assertFunc func(
 		},
 	}
 
-	assertFunc(t, rows, expected)
-}
-
-func TestLoad_Pointer(t *testing.T) {
-	Load_PointerTemplate[PointerRow](t, dataPath, LoadAssertFunc)
+	LoadAssert(t, rows, expected)
 }
 
 func TestLoad_Pointer_Nil(t *testing.T) {
@@ -104,7 +96,7 @@ func TestLoad_Pointer_Nil(t *testing.T) {
 		t.Error(err)
 	}
 
-	if cmp.Equal(rows, []PointerRow{
+	expected := []PointerRow{
 		{
 			FirstHeaderValue:  nil,
 			SecondHeaderValue: utils.PointerOf("R1V2"),
@@ -125,9 +117,9 @@ func TestLoad_Pointer_Nil(t *testing.T) {
 			SecondHeaderValue: nil,
 			ThirdHeaderValue:  nil,
 		},
-	}) == false {
-		t.Error(rows)
 	}
+
+	LoadAssert(t, rows, expected)
 }
 
 func TestLoad_Nested(t *testing.T) {
@@ -141,7 +133,7 @@ func TestLoad_Nested(t *testing.T) {
 		t.Error(err)
 	}
 
-	if cmp.Equal(rows, []NestedRow{
+	expected := []NestedRow{
 		{
 			FirstHeaderValue: "R1V1",
 			NestedValue: NestedRowValue{
@@ -163,9 +155,9 @@ func TestLoad_Nested(t *testing.T) {
 				ThirdHeaderValue:  "R3V3",
 			},
 		},
-	}) == false {
-		t.Error(rows)
 	}
+
+	LoadAssert(t, rows, expected)
 }
 
 func TestLoad_Typed(t *testing.T) {
@@ -179,16 +171,16 @@ func TestLoad_Typed(t *testing.T) {
 		t.Error(err)
 	}
 
-	if cmp.Equal(rows, []TypedRow{
+	expected := []TypedRow{
 		{
 			IntValue:    1,
 			UintValue:   1,
 			FloatValue:  1.1,
 			StringValue: "value1",
 		},
-	}) == false {
-		t.Error(rows)
 	}
+
+	LoadAssert(t, rows, expected)
 }
 
 func TestLoad_DoubledColumn(t *testing.T) {

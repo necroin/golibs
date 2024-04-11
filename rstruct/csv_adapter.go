@@ -90,9 +90,11 @@ func (csva *CSVAdapter) Deref() csv.Adapter {
 }
 
 func (csva *CSVAdapter) Field(index int) csv.Adapter {
+	field := csva.structValue.fields[index]
+
 	return &CSVAdapter{
 		structValue: nil,
-		fieldValue:  csva.structValue.fields[index],
+		fieldValue:  field,
 	}
 }
 
@@ -104,22 +106,26 @@ func (csva *CSVAdapter) GetTag(key string) string {
 	return csva.fieldValue.rtField.tags[key]
 }
 
-func (csva *CSVAdapter) SetString(value string) {
+func (csva *CSVAdapter) SetValue(value any) {
 	csva.fieldValue.Set(value)
+}
+
+func (csva *CSVAdapter) SetString(value string) {
+	csva.SetValue(value)
 }
 
 func (csva *CSVAdapter) SetInt(value int64) {
-	csva.fieldValue.Set(value)
+	csva.SetValue(value)
 }
 
 func (csva *CSVAdapter) SetUint(value uint64) {
-	csva.fieldValue.Set(value)
+	csva.SetValue(value)
 }
 
 func (csva *CSVAdapter) SetFloat(value float64) {
-	csva.fieldValue.Set(value)
+	csva.SetValue(value)
 }
 
 func (csva *CSVAdapter) SetBool(value bool) {
-	csva.fieldValue.Set(value)
+	csva.SetValue(value)
 }
