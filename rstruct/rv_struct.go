@@ -22,7 +22,13 @@ func (rvs *RVStruct) ToJson(tag string) ([]byte, error) {
 		if !ok {
 			tagValue = fieldName
 		}
-		jsonFieldsByName[tagValue] = field.value
+		jsonValue := field.value
+		castedFieldValue, ok := field.value.(*RVStruct)
+		if ok {
+			jsonValueData, _ := castedFieldValue.ToJson(tag)
+			jsonValue = string(jsonValueData)
+		}
+		jsonFieldsByName[tagValue] = jsonValue
 	}
 
 	return json.Marshal(jsonFieldsByName)

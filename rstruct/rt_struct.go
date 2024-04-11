@@ -42,6 +42,12 @@ func (rts *RTStruct) New() *RVStruct {
 			rtField: tField,
 			value:   tField.defaultValue,
 		}
+
+		nestedRTStruct, ok := tField.defaultValue.(*RTStruct)
+		if ok {
+			vField.value = nestedRTStruct.New()
+		}
+
 		vFields = append(vFields, vField)
 		vFieldsByName[tField.name] = vField
 	}
@@ -138,7 +144,19 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 
 			rtsField := rts.FieldByName(rtExField.Name)
 			if rtsField == nil {
-				rtsField = NewRTField(rtExField.Name, reflect.Zero(rtExField.Type).Interface())
+				if utils.IsStruct(rvExField) {
+					nestedStruct := NewStruct()
+					nestedStruct.Extend(ExtendOption{
+						Value:      rvExField.Interface(),
+						Tags:       extendOption.Tags,
+						TagsPrefix: utils.MapCopy(extendOption.TagsPrefix),
+						IsFlat:     extendOption.IsFlat,
+						FlatMode:   extendOption.FlatMode,
+					})
+					rtsField = NewRTField(rtExField.Name, nestedStruct)
+				} else {
+					rtsField = NewRTField(rtExField.Name, reflect.Zero(rtExField.Type).Interface())
+				}
 				if err := rts.AddField(rtsField); err != nil {
 					return fmt.Errorf("[RTStruct] [Extend] failed add field: %s", err)
 				}

@@ -175,7 +175,6 @@ func TestLoad_Nested(t *testing.T) {
 	err := customStruct.Extend(rstruct.ExtendOption{
 		Value: csv_tests.NestedRow{},
 		Tags:  map[string]string{"csv": "csv"},
-		// IsFlat: true,
 	})
 	if err != nil {
 		t.Fatal(err)

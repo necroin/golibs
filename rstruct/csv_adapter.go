@@ -18,6 +18,7 @@ func NewCSVAdapter(structType *RTStruct, value reflect.Value) csv.Adapter {
 	}
 
 	instance := structType.New()
+	castedValue.rtStruct = structType
 	castedValue.fields = instance.fields
 	castedValue.fieldsByName = instance.fieldsByName
 	return &CSVAdapter{
@@ -92,6 +93,13 @@ func (csva *CSVAdapter) Deref() csv.Adapter {
 func (csva *CSVAdapter) Field(index int) csv.Adapter {
 	field := csva.structValue.fields[index]
 
+	castedFieldValue, ok := field.value.(*RVStruct)
+	if ok {
+		return &CSVAdapter{
+			structValue: castedFieldValue,
+			fieldValue:  nil,
+		}
+	}
 	return &CSVAdapter{
 		structValue: nil,
 		fieldValue:  field,
