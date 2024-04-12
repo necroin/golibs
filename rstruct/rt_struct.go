@@ -129,6 +129,10 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 			rvExField := rvExValue.Field(i)
 			rtExField := rtExValue.Field(i)
 
+			if !rtExField.IsExported() {
+				continue
+			}
+
 			if extendOption.IsFlat && utils.IsStruct(rvExField) {
 				flatExtendOption := ExtendOption{
 					Value:      rvExField.Interface(),

@@ -24,3 +24,8 @@ type NestedExtendStruct struct {
 	} `json:"nested_third_field"`
 	NotNestedField string `json:"not_nested_field"`
 }
+
+type UnExportedFieldsStruct struct {
+	unExportedField any
+	ExportedField   string `json:"exported_field"`
+}

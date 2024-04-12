@@ -188,3 +188,24 @@ func TestExtend_Nested_Flat_NestedMode(t *testing.T) {
 		t.Fatalf("invalid json result: %s", string(jsonData))
 	}
 }
+
+func TestExtend_UnExportedField(t *testing.T) {
+	customStruct := rstruct.NewStruct()
+	err := customStruct.Extend(rstruct.ExtendOption{
+		Value: UnExportedFieldsStruct{},
+		Tags:  map[string]string{"json": "json"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	instance := customStruct.New()
+
+	if instance.String() != "map[ExportedField:]" {
+		t.Fatalf("invalid string result: %s", instance.String())
+	}
+	jsonData, _ := instance.ToJson("json")
+	if string(jsonData) != `{"exported_field":""}` {
+		t.Fatalf("invalid json result: %s", string(jsonData))
+	}
+}
