@@ -312,4 +312,12 @@ ___
 ```sh
 go get github.com/necroin/golibs/tokenizer
 ```
-__
+___
+## RStruct
+Provides interface for custom struct.
+___
+### Install
+```sh
+go get github.com/necroin/golibs/rstruct
+```
+___
