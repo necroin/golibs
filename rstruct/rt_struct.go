@@ -28,6 +28,7 @@ type ExtendOption struct {
 	Value            any
 	Tags             map[string]string
 	TagsPrefix       map[string]string
+	IsPureTag        bool
 	PrefixDelimiter  rune
 	IsFlat           bool
 	FlatMode         int
@@ -148,6 +149,11 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 						if tag == "" || tag == "-" {
 							continue
 						}
+
+						if extendOption.IsPureTag {
+							tag = utils.CleanTag(tag)
+						}
+
 						prefix, ok := extendOption.TagsPrefix[rtfTagName]
 						if !ok {
 							flatExtendOption.TagsPrefix[rtfTagName] = tag
@@ -188,6 +194,10 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 				tag := rtExField.Tag.Get(exTagName)
 				if tag == "" || tag == "-" {
 					continue
+				}
+
+				if extendOption.IsPureTag {
+					tag = utils.CleanTag(tag)
 				}
 
 				prefix, ok := extendOption.TagsPrefix[rtfTagName]

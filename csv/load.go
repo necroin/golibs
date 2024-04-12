@@ -101,8 +101,7 @@ func fillStruct(structValue Adapter, data []string, columns map[string]int, opti
 		if tag == "" || tag == "-" {
 			continue
 		}
-		tagParts := strings.Split(tag, ",")
-		tag = tagParts[0]
+		tag = utils.CleanTag(tag)
 
 		columnIndex, ok := columns[tag]
 		if !ok {

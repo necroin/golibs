@@ -1,5 +1,7 @@
 package utils
 
+import "strings"
+
 func PointerOf[T any](value T) *T {
 	return &value
 }
@@ -14,4 +16,12 @@ func MapCopy[K comparable, V any](value map[K]V) map[K]V {
 		result[k] = v
 	}
 	return result
+}
+
+func CleanTag(value string) string {
+	if value == "" {
+		return ""
+	}
+	parts := strings.Split(value, ",")
+	return parts[0]
 }
