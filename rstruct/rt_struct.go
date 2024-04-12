@@ -12,13 +12,26 @@ const (
 	NestedFlatMode
 )
 
+const (
+	ZeroDefaultValueMode = iota
+	NilDefaultValueMode
+)
+
+func GetDefaultValue(mode int, valueType reflect.Type) any {
+	if mode == NilDefaultValueMode {
+		return nil
+	}
+	return reflect.Zero(valueType).Interface()
+}
+
 type ExtendOption struct {
-	Value           any
-	Tags            map[string]string
-	TagsPrefix      map[string]string
-	PrefixDelimiter rune
-	IsFlat          bool
-	FlatMode        int
+	Value            any
+	Tags             map[string]string
+	TagsPrefix       map[string]string
+	PrefixDelimiter  rune
+	IsFlat           bool
+	FlatMode         int
+	DefaultValueMode int
 }
 
 type RTStruct struct {
@@ -159,7 +172,7 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 					})
 					rtsField = NewRTField(rtExField.Name, nestedStruct)
 				} else {
-					rtsField = NewRTField(rtExField.Name, reflect.Zero(rtExField.Type).Interface())
+					rtsField = NewRTField(rtExField.Name, GetDefaultValue(extendOption.DefaultValueMode, rtExField.Type))
 				}
 
 				if err := rts.AddField(rtsField); err != nil {
