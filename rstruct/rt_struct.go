@@ -24,8 +24,6 @@ func GetDefaultValue(mode int, valueType reflect.Type) any {
 	return reflect.Zero(valueType).Interface()
 }
 
-func GetTag()
-
 type ExtendOption struct {
 	Value            any
 	Tags             map[string]string
