@@ -14,6 +14,14 @@ func NewRTField(name string, defaultValue any) *RTField {
 	}
 }
 
+func (rtf *RTField) Name() string {
+	return rtf.name
+}
+
+func (rtf *RTField) Tags() map[string]string {
+	return rtf.tags
+}
+
 func (rtf *RTField) SetTag(name string, value string) *RTField {
 	rtf.tags[name] = value
 	return rtf

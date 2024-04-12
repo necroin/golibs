@@ -19,6 +19,10 @@ func (rvf *RVField) Get() any {
 	return rvf.value
 }
 
+func (rvf *RVField) Type() *RTField {
+	return rvf.rtField
+}
+
 func (rvf *RVField) String() string {
 	if rvf.value == nil {
 		return ""
@@ -45,6 +49,18 @@ func (rvf *RVField) IsPointer() bool {
 	return rvf.Kind() == reflect.Pointer
 }
 
+func (rvf *RVField) IsInterface() bool {
+	return rvf.Kind() == reflect.Interface
+}
+
 func (rvf *RVField) IsStruct() bool {
 	return rvf.Kind() == reflect.Struct
+}
+
+func (rvf *RVField) IsSlice() bool {
+	return rvf.Kind() == reflect.Slice
+}
+
+func (rvf *RVField) IsMap() bool {
+	return rvf.Kind() == reflect.Map
 }

@@ -62,7 +62,7 @@ func (rts *RTStruct) New() *RVStruct {
 func (rts *RTStruct) AddField(field *RTField) error {
 	_, ok := rts.fieldsByName[field.name]
 	if ok {
-		return fmt.Errorf("[RTStruct] field with name '%s' already exists", field.name)
+		return fmt.Errorf("[RTStruct] [AddField] field with name '%s' already exists", field.name)
 	}
 
 	rts.fields = append(rts.fields, field)
@@ -97,6 +97,10 @@ func (rts *RTStruct) FieldByName(name string) *RTField {
 
 func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 	for extendOptionNumber, extendOption := range extendOptions {
+		if extendOption.Value == nil {
+			return fmt.Errorf("[RTStruct] [Extend] %d extend value is nil", extendOptionNumber)
+		}
+
 		if !utils.IsStruct(reflect.ValueOf(extendOption.Value)) {
 			return fmt.Errorf("[RTStruct] [Extend] %d extend value is not a struct", extendOptionNumber)
 		}
@@ -114,7 +118,7 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 
 			if extendOption.IsFlat && utils.IsStruct(rvExField) {
 				flatExtendOption := ExtendOption{
-					Value:      utils.DerefValueOf(rvExField.Interface()).Interface(),
+					Value:      rvExField.Interface(),
 					Tags:       extendOption.Tags,
 					TagsPrefix: utils.MapCopy(extendOption.TagsPrefix),
 					IsFlat:     extendOption.IsFlat,
@@ -157,6 +161,7 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 				} else {
 					rtsField = NewRTField(rtExField.Name, reflect.Zero(rtExField.Type).Interface())
 				}
+
 				if err := rts.AddField(rtsField); err != nil {
 					return fmt.Errorf("[RTStruct] [Extend] failed add field: %s", err)
 				}

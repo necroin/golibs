@@ -135,7 +135,7 @@ func TestExtend_Nested(t *testing.T) {
 
 	instance := customStruct.New()
 
-	if instance.String() != "map[NestedFirstField:{} NestedSecondField:{0} NestedThirdField:{false} NotNestedField:]" {
+	if instance.String() != "map[NestedFirstField:map[FirstField:] NestedSecondField:map[SecondField:0] NestedThirdField:map[ThirdField:false] NotNestedField:]" {
 		t.Fatalf("invalid string result: %s", instance.String())
 	}
 	jsonData, _ := instance.ToJson("json")
