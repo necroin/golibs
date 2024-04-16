@@ -3,6 +3,8 @@ package rstruct
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/necroin/golibs/utils"
 )
 
 type RVStruct struct {
@@ -39,10 +41,11 @@ func (rvs *RVStruct) FieldsListByTag(tag string) []*RVField {
 
 func (rvs *RVStruct) FieldsMapByTag(tag string) map[string]*RVField {
 	result := map[string]*RVField{}
-	for fieldName, field := range rvs.fieldsByName {
-		_, ok := field.rtField.tags[tag]
+	for _, field := range rvs.fields {
+		fieldTag, ok := field.rtField.tags[tag]
+		fieldTag = utils.CleanTag(fieldTag)
 		if ok {
-			result[fieldName] = field
+			result[fieldTag] = field
 		}
 	}
 	return result
