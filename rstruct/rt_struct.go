@@ -53,8 +53,9 @@ func (rts *RTStruct) New() *RVStruct {
 
 	for _, tField := range rts.fields {
 		vField := &RVField{
-			rtField: tField,
-			value:   tField.defaultValue,
+			rtField:  tField,
+			value:    tField.defaultValue,
+			isStruct: false,
 		}
 
 		nestedRTStruct, ok := tField.defaultValue.(*RTStruct)
