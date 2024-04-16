@@ -94,6 +94,10 @@ func (rts *RTStruct) AddFields(fields ...*RTField) error {
 	return nil
 }
 
+func (rts *RTStruct) NumField() int {
+	return len(rts.fields)
+}
+
 func (rts *RTStruct) FieldByIndex(index int) *RTField {
 	if index < 0 || index >= len(rts.fields) {
 		return nil
