@@ -7,8 +7,9 @@ import (
 )
 
 type RVField struct {
-	rtField *RTField
-	value   any
+	rtField  *RTField
+	value    any
+	isStruct bool
 }
 
 func (rvf *RVField) Set(value any) {
@@ -54,7 +55,7 @@ func (rvf *RVField) IsInterface() bool {
 }
 
 func (rvf *RVField) IsStruct() bool {
-	return rvf.Kind() == reflect.Struct
+	return rvf.isStruct
 }
 
 func (rvf *RVField) IsSlice() bool {
@@ -63,4 +64,8 @@ func (rvf *RVField) IsSlice() bool {
 
 func (rvf *RVField) IsMap() bool {
 	return rvf.Kind() == reflect.Map
+}
+
+func (rvf *RVField) AsStruct() *RVStruct {
+	return rvf.value.(*RVStruct)
 }

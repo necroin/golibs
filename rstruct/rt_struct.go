@@ -60,6 +60,7 @@ func (rts *RTStruct) New() *RVStruct {
 		nestedRTStruct, ok := tField.defaultValue.(*RTStruct)
 		if ok {
 			vField.value = nestedRTStruct.New()
+			vField.isStruct = true
 		}
 
 		vFields = append(vFields, vField)
