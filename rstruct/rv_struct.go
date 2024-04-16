@@ -26,6 +26,28 @@ func (rvs *RVStruct) FieldByName(name string) *RVField {
 	return field
 }
 
+func (rvs *RVStruct) FieldsListByTag(tag string) []*RVField {
+	result := []*RVField{}
+	for _, field := range rvs.fields {
+		_, ok := field.rtField.tags[tag]
+		if ok {
+			result = append(result, field)
+		}
+	}
+	return result
+}
+
+func (rvs *RVStruct) FieldsMapByTag(tag string) map[string]*RVField {
+	result := map[string]*RVField{}
+	for fieldName, field := range rvs.fieldsByName {
+		_, ok := field.rtField.tags[tag]
+		if ok {
+			result[fieldName] = field
+		}
+	}
+	return result
+}
+
 func (rvs *RVStruct) Type() *RTStruct {
 	return rvs.rtStruct
 }
