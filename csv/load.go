@@ -182,8 +182,6 @@ func setValue(field Adapter, data string, options Options) error {
 			return fmt.Errorf("[CSV] [Error] failed parse bool '%s': %s", data, err)
 		}
 		field.SetBool(boolData)
-	default:
-		field.Set(data)
 	}
 
 	return nil
