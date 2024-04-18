@@ -19,7 +19,7 @@ type NestedExtendStruct struct {
 	NestedSecondField struct {
 		SecondField int `json:"second_field"`
 	} `json:"nested_second_field"`
-	NestedThirdField struct {
+	NestedThirdField *struct {
 		ThirdField bool `json:"third_field"`
 	} `json:"nested_third_field"`
 	NotNestedField string `json:"not_nested_field"`

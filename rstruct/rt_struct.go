@@ -138,6 +138,11 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 			rvExField := rvExValue.Field(i)
 			rtExField := rtExValue.Field(i)
 
+			if utils.IsPointer(rvExField) {
+				rvExField = reflect.New(rtExField.Type.Elem())
+				rvExField = rvExField.Elem()
+			}
+
 			if !rtExField.IsExported() {
 				continue
 			}
