@@ -133,6 +133,8 @@ func TestExtend_Nested(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	fmt.Println(customStruct)
+
 	instance := customStruct.New()
 
 	if instance.String() != "map[NestedFirstField:map[FirstField:] NestedSecondField:map[SecondField:0] NestedThirdField:map[ThirdField:false] NotNestedField:]" {

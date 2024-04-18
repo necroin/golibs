@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/necroin/golibs/utils"
@@ -230,15 +231,29 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 	return nil
 }
 
+func (rts *RTStruct) string(writer *tabwriter.Writer, level int) {
+	levelOffset := strings.Repeat("\t", level)
+
+	fmt.Fprintf(writer, "%s{\n", levelOffset)
+	for _, field := range rts.fields {
+		nestedRTStruct, ok := field.defaultValue.(*RTStruct)
+		if ok {
+			fmt.Fprintf(writer, "%s %s", levelOffset, field.name)
+			nestedRTStruct.string(writer, level+1)
+		} else {
+			fmt.Fprintf(writer, "%s %s\t%v\n", levelOffset, field.name, field.defaultValue)
+		}
+		for tagName, tagContent := range field.tags {
+			fmt.Fprintf(writer, "%s\t`%s\t: %s`\n", levelOffset, tagName, tagContent)
+		}
+	}
+	fmt.Fprintf(writer, "%s}\n", levelOffset)
+}
+
 func (rts *RTStruct) String() string {
 	buffer := &bytes.Buffer{}
 	writer := tabwriter.NewWriter(buffer, 1, 1, 1, ' ', 0)
-	for _, field := range rts.fields {
-		fmt.Fprintf(writer, "\t%s\t%v\n", field.name, field.defaultValue)
-		for tagName, tagContent := range field.tags {
-			fmt.Fprintf(writer, "\t\t%s\t%s\n", tagName, tagContent)
-		}
-	}
+	rts.string(writer, 0)
 	writer.Flush()
-	return fmt.Sprintf("{\n%s}\n", buffer.String())
+	return buffer.String()
 }
