@@ -133,8 +133,6 @@ func TestExtend_Nested(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fmt.Println(customStruct)
-
 	instance := customStruct.New()
 
 	if instance.String() != "map[NestedFirstField:map[FirstField:] NestedSecondField:map[SecondField:0] NestedThirdField:map[ThirdField:false] NotNestedField:]" {
@@ -208,6 +206,31 @@ func TestExtend_UnExportedField(t *testing.T) {
 	}
 	jsonData, _ := instance.ToJson("json")
 	if string(jsonData) != `{"exported_field":""}` {
+		t.Fatalf("invalid json result: %s", string(jsonData))
+	}
+}
+
+func TestExtend_Nested_IgnoreNested(t *testing.T) {
+	customStruct := rstruct.NewStruct()
+	err := customStruct.Extend(rstruct.ExtendOption{
+		Value: IgnoreNestedStruct{},
+		Tags:  map[string]string{"json": "json"},
+		IgnoreNested: []any{
+			SimpleNestedStruct{},
+		},
+		DefaultValueMode: rstruct.NilDefaultValueMode,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	instance := customStruct.New()
+
+	if instance.String() != "map[NestedFirstField:map[FirstField:] NestedSecondField: NestedThirdField:]" {
+		t.Fatalf("invalid string result: %s", instance.String())
+	}
+	jsonData, _ := instance.ToJson("json")
+	if string(jsonData) != `{"nested_first_field":{"first_field":null},"nested_second_field":null,"nested_third_field":null}` {
 		t.Fatalf("invalid json result: %s", string(jsonData))
 	}
 }

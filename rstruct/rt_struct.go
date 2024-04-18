@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
+	"slices"
 	"strings"
 	"text/tabwriter"
 
@@ -28,14 +29,24 @@ func GetDefaultValue(mode int, valueType reflect.Type) any {
 }
 
 type ExtendOption struct {
-	Value            any
-	Tags             map[string]string
-	TagsPrefix       map[string]string
-	IsPureTag        bool
-	PrefixDelimiter  rune
-	IsFlat           bool
-	FlatMode         int
+	// Value of extend type.
+	Value any
+	// Tag conversion map.
+	Tags map[string]string
+	// Tags prefix map.
+	TagsPrefix map[string]string
+	// Use true to remove all tags modifiers.
+	IsPureTag bool
+	// Uses '.' by default.
+	PrefixDelimiter rune
+	// Makes the nested structure flat.
+	IsFlat bool
+	// Use NestedFlatMode to preserve nesting in tags.
+	FlatMode int
+	// ZeroDefaultValueMode to fill values with zero type values, NilDefaultValueMode to fill all fields with nil.
 	DefaultValueMode int
+	// List of types that will be ignored in nested logic.
+	IgnoreNested []any
 }
 
 type RTStruct struct {
@@ -148,7 +159,7 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 				continue
 			}
 
-			if extendOption.IsFlat && utils.IsStruct(rvExField) {
+			if extendOption.IsFlat && utils.IsStruct(rvExField) && !slices.Contains(extendOption.IgnoreNested, rvExField.Interface()) {
 				flatExtendOption := ExtendOption{
 					Value:            rvExField.Interface(),
 					Tags:             extendOption.Tags,
@@ -158,6 +169,7 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 					IsFlat:           extendOption.IsFlat,
 					FlatMode:         extendOption.FlatMode,
 					DefaultValueMode: extendOption.DefaultValueMode,
+					IgnoreNested:     extendOption.IgnoreNested,
 				}
 
 				if extendOption.FlatMode == NestedFlatMode {
@@ -188,7 +200,7 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 
 			rtsField := rts.FieldByName(rtExField.Name)
 			if rtsField == nil {
-				if utils.IsStruct(rvExField) {
+				if utils.IsStruct(rvExField) && !slices.Contains(extendOption.IgnoreNested, rvExField.Interface()) {
 					nestedStruct := NewStruct()
 					nestedStruct.Extend(ExtendOption{
 						Value:            rvExField.Interface(),

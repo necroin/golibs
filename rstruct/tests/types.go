@@ -29,3 +29,16 @@ type UnExportedFieldsStruct struct {
 	unExportedField any
 	ExportedField   string `json:"exported_field"`
 }
+
+type SimpleNestedStruct struct {
+	FirstField  string `json:"first_field"`
+	SecondField int    `json:"second_field"`
+}
+
+type IgnoreNestedStruct struct {
+	NestedFirstField struct {
+		FirstField string `json:"first_field"`
+	} `json:"nested_first_field"`
+	NestedSecondField SimpleNestedStruct  `json:"nested_second_field"`
+	NestedThirdField  *SimpleNestedStruct `json:"nested_third_field"`
+}
