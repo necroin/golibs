@@ -1,8 +1,10 @@
 package rstruct
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
+	"text/tabwriter"
 
 	"github.com/necroin/golibs/utils"
 )
@@ -215,4 +217,17 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 		}
 	}
 	return nil
+}
+
+func (rts *RTStruct) String() string {
+	buffer := &bytes.Buffer{}
+	writer := tabwriter.NewWriter(buffer, 1, 1, 1, ' ', 0)
+	for _, field := range rts.fields {
+		fmt.Fprintf(writer, "\t%s\t%v\n", field.name, field.defaultValue)
+		for tagName, tagContent := range field.tags {
+			fmt.Fprintf(writer, "\t\t%s\t%s\n", tagName, tagContent)
+		}
+	}
+	writer.Flush()
+	return fmt.Sprintf("{\n%s}\n", buffer.String())
 }
