@@ -149,11 +149,14 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 
 			if extendOption.IsFlat && utils.IsStruct(rvExField) {
 				flatExtendOption := ExtendOption{
-					Value:      rvExField.Interface(),
-					Tags:       extendOption.Tags,
-					TagsPrefix: utils.MapCopy(extendOption.TagsPrefix),
-					IsFlat:     extendOption.IsFlat,
-					FlatMode:   extendOption.FlatMode,
+					Value:            rvExField.Interface(),
+					Tags:             extendOption.Tags,
+					TagsPrefix:       utils.MapCopy(extendOption.TagsPrefix),
+					IsPureTag:        extendOption.IsPureTag,
+					PrefixDelimiter:  extendOption.PrefixDelimiter,
+					IsFlat:           extendOption.IsFlat,
+					FlatMode:         extendOption.FlatMode,
+					DefaultValueMode: extendOption.DefaultValueMode,
 				}
 
 				if extendOption.FlatMode == NestedFlatMode {
@@ -187,11 +190,14 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 				if utils.IsStruct(rvExField) {
 					nestedStruct := NewStruct()
 					nestedStruct.Extend(ExtendOption{
-						Value:      rvExField.Interface(),
-						Tags:       extendOption.Tags,
-						TagsPrefix: utils.MapCopy(extendOption.TagsPrefix),
-						IsFlat:     extendOption.IsFlat,
-						FlatMode:   extendOption.FlatMode,
+						Value:            rvExField.Interface(),
+						Tags:             extendOption.Tags,
+						TagsPrefix:       utils.MapCopy(extendOption.TagsPrefix),
+						IsPureTag:        extendOption.IsPureTag,
+						PrefixDelimiter:  extendOption.PrefixDelimiter,
+						IsFlat:           extendOption.IsFlat,
+						FlatMode:         extendOption.FlatMode,
+						DefaultValueMode: extendOption.DefaultValueMode,
 					})
 					rtsField = NewRTField(rtExField.Name, nestedStruct)
 				} else {
