@@ -143,6 +143,12 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 			extendOption.PrefixDelimiter = '.'
 		}
 
+		ignoreNestedNames := []string{}
+		for _, ignoreType := range extendOption.IgnoreNested {
+			rIgnoreType := reflect.TypeOf(ignoreType)
+			ignoreNestedNames = append(ignoreNestedNames, rIgnoreType.PkgPath()+"/"+rIgnoreType.Name())
+		}
+
 		rvExValue := reflect.ValueOf(extendOption.Value)
 		rtExValue := reflect.TypeOf(extendOption.Value)
 
@@ -159,7 +165,9 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 				continue
 			}
 
-			if extendOption.IsFlat && utils.IsStruct(rvExField) && !slices.Contains(extendOption.IgnoreNested, rvExField.Interface()) {
+			inIgnoreNestedList := slices.Contains(ignoreNestedNames, rvExField.Type().PkgPath()+"/"+rvExField.Type().Name())
+
+			if extendOption.IsFlat && utils.IsStruct(rvExField) && !inIgnoreNestedList {
 				flatExtendOption := ExtendOption{
 					Value:            rvExField.Interface(),
 					Tags:             extendOption.Tags,
@@ -200,7 +208,7 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 
 			rtsField := rts.FieldByName(rtExField.Name)
 			if rtsField == nil {
-				if utils.IsStruct(rvExField) && !slices.Contains(extendOption.IgnoreNested, rvExField.Interface()) {
+				if utils.IsStruct(rvExField) && !inIgnoreNestedList {
 					nestedStruct := NewStruct()
 					nestedStruct.Extend(ExtendOption{
 						Value:            rvExField.Interface(),
