@@ -35,3 +35,12 @@ func (rtf *RTField) GetTag(name string) (string, bool) {
 	value, ok := rtf.tags[name]
 	return value, ok
 }
+
+func (rvf *RTField) IsStruct() bool {
+	_, ok := rvf.defaultValue.(*RTStruct)
+	return ok
+}
+
+func (rvf *RTField) AsStruct() *RTStruct {
+	return rvf.defaultValue.(*RTStruct)
+}
