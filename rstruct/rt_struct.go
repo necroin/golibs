@@ -256,7 +256,11 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 func (rts *RTStruct) write(writer *tabwriter.Writer, level int, isSorted bool) {
 	levelOffset := strings.Repeat("\t", level)
 
-	fmt.Fprintf(writer, "%s{\n", levelOffset)
+	if level == 0 {
+		fmt.Fprintf(writer, "{\n")
+	} else {
+		fmt.Fprintf(writer, "\t{\n")
+	}
 
 	fields := rts.fields
 	if isSorted {
