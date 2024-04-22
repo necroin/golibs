@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"slices"
+	"sort"
 	"strings"
 	"text/tabwriter"
 
@@ -251,15 +252,22 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 	return nil
 }
 
-func (rts *RTStruct) string(writer *tabwriter.Writer, level int) {
+func (rts *RTStruct) write(writer *tabwriter.Writer, level int, isSorted bool) {
 	levelOffset := strings.Repeat("\t", level)
 
 	fmt.Fprintf(writer, "%s{\n", levelOffset)
-	for _, field := range rts.fields {
+
+	fields := rts.fields
+	if isSorted {
+		fields = append(rts.fields[:0:0], rts.fields...)
+		sort.Slice(fields, func(i, j int) bool { return fields[i].name < fields[j].name })
+	}
+
+	for _, field := range fields {
 		nestedRTStruct, ok := field.defaultValue.(*RTStruct)
 		if ok {
 			fmt.Fprintf(writer, "%s %s", levelOffset, field.name)
-			nestedRTStruct.string(writer, level+1)
+			nestedRTStruct.write(writer, level+1, isSorted)
 		} else {
 			fmt.Fprintf(writer, "%s %s\t%v\n", levelOffset, field.name, field.defaultValue)
 		}
@@ -270,10 +278,18 @@ func (rts *RTStruct) string(writer *tabwriter.Writer, level int) {
 	fmt.Fprintf(writer, "%s}\n", levelOffset)
 }
 
-func (rts *RTStruct) String() string {
+func (rts *RTStruct) string(isSorted bool) string {
 	buffer := &bytes.Buffer{}
 	writer := tabwriter.NewWriter(buffer, 1, 1, 1, ' ', 0)
-	rts.string(writer, 0)
+	rts.write(writer, 0, isSorted)
 	writer.Flush()
 	return buffer.String()
+}
+
+func (rts *RTStruct) String() string {
+	return rts.string(false)
+}
+
+func (rts *RTStruct) SortedString() string {
+	return rts.string(true)
 }
