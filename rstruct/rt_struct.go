@@ -220,6 +220,7 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 						IsFlat:           extendOption.IsFlat,
 						FlatMode:         extendOption.FlatMode,
 						DefaultValueMode: extendOption.DefaultValueMode,
+						IgnoreNested:     extendOption.IgnoreNested,
 					})
 					rtsField = NewRTField(rtExField.Name, nestedStruct)
 				} else {
