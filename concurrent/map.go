@@ -1,6 +1,9 @@
 package concurrent
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 type ConcurrentMap[K comparable, V any] struct {
 	data           map[K]V
@@ -92,4 +95,8 @@ func (concurrentMap *ConcurrentMap[K, V]) ComplexOperation(handler func() error)
 	concurrentMap.complexOpMutex.Lock()
 	defer concurrentMap.complexOpMutex.Unlock()
 	return handler()
+}
+
+func (concurrentMap *ConcurrentMap[K, V]) String() string {
+	return fmt.Sprintf("(len = %d) %v", concurrentMap.Size(), concurrentMap.data)
 }

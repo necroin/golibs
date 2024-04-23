@@ -139,6 +139,10 @@ func (concurrentSlice *ConcurrentSlice[V]) End() *ConcurrentSliceIterator[V] {
 	}
 }
 
+func (concurrentSlice *ConcurrentSlice[V]) String() string {
+	return fmt.Sprintf("(len = %d) %v", concurrentSlice.Size(), concurrentSlice.data)
+}
+
 func (iterator *ConcurrentSliceIterator[V]) Next() *ConcurrentSliceIterator[V] {
 	iterator.mutex.Lock()
 	defer iterator.mutex.Unlock()
