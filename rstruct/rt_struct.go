@@ -166,23 +166,23 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 				continue
 			}
 
+			nestedExtendOption := ExtendOption{
+				Value:            rvExField.Interface(),
+				Tags:             extendOption.Tags,
+				TagsPrefix:       utils.MapCopy(extendOption.TagsPrefix),
+				IsPureTag:        extendOption.IsPureTag,
+				PrefixDelimiter:  extendOption.PrefixDelimiter,
+				IsFlat:           extendOption.IsFlat,
+				FlatMode:         extendOption.FlatMode,
+				DefaultValueMode: extendOption.DefaultValueMode,
+				IgnoreNested:     extendOption.IgnoreNested,
+			}
+
 			inIgnoreNestedList := slices.Contains(ignoreNestedNames, rvExField.Type().PkgPath()+"/"+rvExField.Type().Name())
 
 			if extendOption.IsFlat && utils.IsStruct(rvExField) && !inIgnoreNestedList {
-				flatExtendOption := ExtendOption{
-					Value:            rvExField.Interface(),
-					Tags:             extendOption.Tags,
-					TagsPrefix:       utils.MapCopy(extendOption.TagsPrefix),
-					IsPureTag:        extendOption.IsPureTag,
-					PrefixDelimiter:  extendOption.PrefixDelimiter,
-					IsFlat:           extendOption.IsFlat,
-					FlatMode:         extendOption.FlatMode,
-					DefaultValueMode: extendOption.DefaultValueMode,
-					IgnoreNested:     extendOption.IgnoreNested,
-				}
-
 				if extendOption.FlatMode == NestedFlatMode {
-					for exTagName, rtfTagName := range flatExtendOption.Tags {
+					for exTagName, rtfTagName := range nestedExtendOption.Tags {
 						tag := rtExField.Tag.Get(exTagName)
 						if tag == "" || tag == "-" {
 							continue
@@ -194,14 +194,14 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 
 						prefix, ok := extendOption.TagsPrefix[rtfTagName]
 						if !ok {
-							flatExtendOption.TagsPrefix[rtfTagName] = tag
+							nestedExtendOption.TagsPrefix[rtfTagName] = tag
 						} else {
-							flatExtendOption.TagsPrefix[rtfTagName] = prefix + string(extendOption.PrefixDelimiter) + tag
+							nestedExtendOption.TagsPrefix[rtfTagName] = prefix + string(extendOption.PrefixDelimiter) + tag
 						}
 					}
 				}
 
-				if err := rts.Extend(flatExtendOption); err != nil {
+				if err := rts.Extend(nestedExtendOption); err != nil {
 					return fmt.Errorf("[RTStruct] [Extend] failed flat extend: %s", err)
 				}
 				continue
@@ -211,17 +211,7 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 			if rtsField == nil {
 				if utils.IsStruct(rvExField) && !inIgnoreNestedList {
 					nestedStruct := NewStruct()
-					nestedStruct.Extend(ExtendOption{
-						Value:            rvExField.Interface(),
-						Tags:             extendOption.Tags,
-						TagsPrefix:       utils.MapCopy(extendOption.TagsPrefix),
-						IsPureTag:        extendOption.IsPureTag,
-						PrefixDelimiter:  extendOption.PrefixDelimiter,
-						IsFlat:           extendOption.IsFlat,
-						FlatMode:         extendOption.FlatMode,
-						DefaultValueMode: extendOption.DefaultValueMode,
-						IgnoreNested:     extendOption.IgnoreNested,
-					})
+					nestedStruct.Extend(nestedExtendOption)
 					rtsField = NewRTField(rtExField.Name, nestedStruct)
 				} else {
 					rtsField = NewRTField(rtExField.Name, GetDefaultValue(extendOption.DefaultValueMode, rtExField.Type))
@@ -230,6 +220,10 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 				if err := rts.AddField(rtsField); err != nil {
 					return fmt.Errorf("[RTStruct] [Extend] failed add field: %s", err)
 				}
+			}
+
+			if utils.IsStruct(rvExField) && rtsField.IsStruct() && !inIgnoreNestedList {
+				rtsField.AsStruct().Extend(nestedExtendOption)
 			}
 
 			for exTagName, rtfTagName := range extendOption.Tags {
