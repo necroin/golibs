@@ -25,3 +25,12 @@ func CleanTag(value string) string {
 	parts := strings.Split(value, ",")
 	return parts[0]
 }
+
+func MapSlice[K comparable, V any](slice []V, keyHandler func(element V) K) map[K][]V {
+	result := map[K][]V{}
+	for _, element := range slice {
+		key := keyHandler(element)
+		result[key] = append(result[key], element)
+	}
+	return result
+}

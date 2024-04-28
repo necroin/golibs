@@ -1,0 +1,27 @@
+<html>
+
+<head>
+    <script>
+        function LaunchStream() {
+            // var image = document.getElementById("image")
+            let canvas = document.getElementById("canvas")
+            let ctx = canvas.getContext('2d')
+            newImage = new Image();
+            newImage.onload = function () {
+                canvas.width = newImage.width
+                canvas.height = newImage.height
+                ctx.drawImage(newImage, 0, 0, newImage.width, newImage.height);
+                // image.src = newImage.src;
+                setTimeout(window.LaunchStream, 0)
+            }
+            newImage.src = "http://localhost:3301/image?time=" + new Date().getTime();
+        }
+    </script>
+</head>
+
+<body onload="setTimeout(window.LaunchStream, 0)">
+    <!-- <img id="image"> -->
+    <canvas id="canvas"></canvas>
+</body>
+
+</html>
