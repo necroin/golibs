@@ -16,6 +16,10 @@ import (
 	"golang.org/x/sys/windows"
 )
 
+const (
+	encodedDataChannelLen = 10
+)
+
 type Cache struct {
 	captureRect  windows.Rect
 	bitmap       winapi.HBITMAP
@@ -118,7 +122,7 @@ func NewApp(pid winapi.ProcessId) (*App, error) {
 	}
 	finalizer.AddFunc(func() { cache.Destroy() })
 
-	encodedData := make(chan *promise.Promise[image.Image, []byte], 10)
+	encodedData := make(chan *promise.Promise[image.Image, []byte], encodedDataChannelLen)
 	finalizer.AddFunc(func() { close(encodedData) })
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -202,6 +206,10 @@ func (app *App) LaunchStream() {
 			case <-app.ctx.Done():
 				return
 			default:
+				if len(app.encodedData) == encodedDataChannelLen {
+					continue
+				}
+
 				img, err := app.CaptureImageScreenVersion()
 				if img == nil || err != nil {
 					continue
