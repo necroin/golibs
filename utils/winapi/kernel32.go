@@ -38,7 +38,7 @@ func GlobalFree(handleMemory HGLOBAL) (HGLOBAL, error) {
 func GlobalLock(handleMemory HGLOBAL) (unsafe.Pointer, error) {
 	result, _, _ := procGlobalLock.Call(uintptr(handleMemory))
 	if result == 0 {
-		return unsafe.Pointer(result), fmt.Errorf("[GlobalFree] failed: %s", windows.GetLastError())
+		return unsafe.Pointer(result), fmt.Errorf("[GlobalLock] failed: %s", windows.GetLastError())
 	}
 	return unsafe.Pointer(result), nil
 }
