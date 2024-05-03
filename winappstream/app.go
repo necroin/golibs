@@ -2,11 +2,14 @@ package winappstream
 
 import (
 	"bytes"
+	"context"
+	"errors"
 	"fmt"
 	"image"
 	"image/jpeg"
 	"unsafe"
 
+	"github.com/necroin/golibs/utils/finalizer"
 	"github.com/necroin/golibs/utils/promise"
 	"github.com/necroin/golibs/utils/winapi"
 	"github.com/necroin/golibs/utils/winutils"
@@ -19,9 +22,12 @@ type Cache struct {
 	bitmapHeader winapi.BITMAPINFOHEADER
 	hmem         winapi.HGLOBAL
 	memptr       unsafe.Pointer
+	finalizer    *finalizer.Finalizer
 }
 
 func NewCache(desktopHDC winapi.HDC, desktopCompatibleHDC winapi.HDC, captureRect windows.Rect) (*Cache, error) {
+	finalizer := finalizer.NewFinalizer()
+
 	imageWidth := winutils.RectWidth(captureRect)
 	imageHeight := winutils.RectHeight(captureRect)
 
@@ -29,6 +35,7 @@ func NewCache(desktopHDC winapi.HDC, desktopCompatibleHDC winapi.HDC, captureRec
 	if err != nil {
 		return nil, fmt.Errorf("[NewCache] failed create compatible bitmap: %s", err)
 	}
+	finalizer.AddFunc(func() { winapi.DeleteObject(winapi.HGDIOBJ(bitmap)) })
 
 	if _, err := winapi.SelectObject(desktopCompatibleHDC, winapi.HGDIOBJ(bitmap)); err != nil {
 		return nil, fmt.Errorf("[NewCache] failed select bitmap: %s", err)
@@ -48,11 +55,13 @@ func NewCache(desktopHDC winapi.HDC, desktopCompatibleHDC winapi.HDC, captureRec
 	if err != nil {
 		return nil, fmt.Errorf("[NewCache] failed GlobalAlloc: %s", err)
 	}
+	finalizer.AddFunc(func() { winapi.GlobalUnlock(hmem) })
 
 	memptr, err := winapi.GlobalLock(hmem)
 	if err != nil {
 		return nil, fmt.Errorf("[NewCache] failed GlobalLock: %s", err)
 	}
+	finalizer.AddFunc(func() { winapi.GlobalFree(hmem) })
 
 	return &Cache{
 		captureRect:  captureRect,
@@ -60,6 +69,7 @@ func NewCache(desktopHDC winapi.HDC, desktopCompatibleHDC winapi.HDC, captureRec
 		bitmapHeader: bitmapHeader,
 		hmem:         hmem,
 		memptr:       memptr,
+		finalizer:    finalizer,
 	}, nil
 }
 
@@ -71,27 +81,48 @@ type App struct {
 	desktopCompatibleHDC winapi.HDC
 	cache                *Cache
 	encodedData          chan *promise.Promise[image.Image, []byte]
+	ctx                  context.Context
+	cancel               context.CancelFunc
+	finalizer            *finalizer.Finalizer
 }
 
 func NewApp(pid winapi.ProcessId) (*App, error) {
+	finalizer := finalizer.NewFinalizer()
+
 	windowHandles := winutils.GetWindowHandlesByProcessId(pid)
+	if len(windowHandles) == 0 {
+		return nil, errors.New("[NewApp] process has 0 window handles")
+	}
 
 	desktopHWND := winapi.GetDesktopWindow()
 	desktopHDC, err := winapi.GetWindowDC(desktopHWND)
 	if err != nil {
 		return nil, fmt.Errorf("[NewApp] failed get desktop device context: %s", err)
 	}
+	finalizer.AddFunc(func() { winapi.ReleaseDC(desktopHWND, desktopHDC) })
 
 	desktopCompatibleHDC, err := winapi.CreateCompatibleDC(desktopHDC)
 	if err != nil {
 		return nil, fmt.Errorf("[NewApp] failed create compatible device context: %s", err)
 	}
+	finalizer.AddFunc(func() { winapi.DeleteDC(desktopCompatibleHDC) })
 
-	captureRect := winutils.GetCaptureRect(windowHandles)
+	captureRect, err := winutils.GetCaptureRect(windowHandles)
+	if err != nil {
+		return nil, fmt.Errorf("[NewApp] failed get capture rect: %s", err)
+	}
+
 	cache, err := NewCache(desktopHDC, desktopCompatibleHDC, captureRect)
 	if err != nil {
 		return nil, fmt.Errorf("[NewApp] failed create cache: %s", err)
 	}
+	finalizer.AddFunc(func() { cache.Destroy() })
+
+	encodedData := make(chan *promise.Promise[image.Image, []byte], 10)
+	finalizer.AddFunc(func() { close(encodedData) })
+
+	ctx, cancel := context.WithCancel(context.Background())
+	finalizer.AddFunc(func() { cancel() })
 
 	return &App{
 		pid:                  pid,
@@ -100,24 +131,27 @@ func NewApp(pid winapi.ProcessId) (*App, error) {
 		desktopHDC:           desktopHDC,
 		desktopCompatibleHDC: desktopCompatibleHDC,
 		cache:                cache,
-		encodedData:          make(chan *promise.Promise[image.Image, []byte], 10),
+		encodedData:          encodedData,
+		ctx:                  ctx,
+		cancel:               cancel,
+		finalizer:            finalizer,
 	}, nil
 }
 
 func (app *App) Destroy() {
-	defer winapi.ReleaseDC(app.desktopHWND, app.desktopHDC)
-	defer winapi.DeleteDC(app.desktopCompatibleHDC)
-	defer app.cache.Destroy()
+	app.finalizer.Execute()
 }
 
 func (cache *Cache) Destroy() {
-	defer winapi.DeleteObject(winapi.HGDIOBJ(cache.bitmap))
-	defer winapi.GlobalUnlock(cache.hmem)
-	defer winapi.GlobalFree(cache.hmem)
+	cache.finalizer.Execute()
 }
 
 func (app *App) CaptureImageScreenVersion() (image.Image, error) {
-	captureRect := winutils.GetCaptureRect(app.windowHandles)
+	captureRect, err := winutils.GetCaptureRect(app.windowHandles)
+	if err != nil {
+		return nil, fmt.Errorf("[CaptureImageScreenVersion] failed get capture rect: %s", err)
+	}
+
 	if !winutils.RectEqual(captureRect, app.cache.captureRect) {
 		newCache, err := NewCache(app.desktopHDC, app.desktopCompatibleHDC, captureRect)
 		if err != nil {
@@ -130,11 +164,11 @@ func (app *App) CaptureImageScreenVersion() (image.Image, error) {
 	imageHeight := winutils.RectHeight(captureRect)
 
 	if err := winapi.BitBlt(app.desktopCompatibleHDC, 0, 0, imageWidth, imageHeight, app.desktopHDC, captureRect.Left, captureRect.Top, winapi.SRCCOPY|winapi.CAPTUREBLT); err != nil {
-		return nil, fmt.Errorf("failed bit blt: %s", err)
+		return nil, fmt.Errorf("[CaptureImageScreenVersion] failed bit blt: %s", err)
 	}
 
 	if err := winapi.GetDIBits(app.desktopCompatibleHDC, app.cache.bitmap, 0, uint32(imageHeight), (*uint8)(app.cache.memptr), (*winapi.BITMAPINFO)(unsafe.Pointer(&app.cache.bitmapHeader)), winapi.DIB_RGB_COLORS); err != nil {
-		return nil, fmt.Errorf("failed GetDIBits: %s", err)
+		return nil, fmt.Errorf("[CaptureImageScreenVersion] failed GetDIBits: %s", err)
 	}
 
 	img := image.NewRGBA(image.Rect(0, 0, int(imageWidth), int(imageHeight)))
@@ -164,17 +198,21 @@ func (app *App) HttpImageCaptureHandler() HttpImageCaptureHandler {
 func (app *App) LaunchStream() {
 	go func() {
 		for {
-			img, err := app.CaptureImageScreenVersion()
-			if img == nil || err != nil {
-				continue
+			select {
+			case <-app.ctx.Done():
+				return
+			default:
+				img, err := app.CaptureImageScreenVersion()
+				if img == nil || err != nil {
+					continue
+				}
+				app.encodedData <- promise.NewPromise[image.Image, []byte](img, func(img image.Image) ([]byte, error) {
+					buf := &bytes.Buffer{}
+					err := jpeg.Encode(buf, img, &jpeg.Options{Quality: 75})
+					return buf.Bytes(), err
+				})
 			}
-			app.encodedData <- promise.NewPromise[image.Image, []byte](img, func(img image.Image) ([]byte, error) {
-				buf := &bytes.Buffer{}
-				err := jpeg.Encode(buf, img, &jpeg.Options{Quality: 75})
-				return buf.Bytes(), err
-			})
 		}
-
 	}()
 }
 

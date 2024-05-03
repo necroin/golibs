@@ -2,6 +2,7 @@ package winutils
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/necroin/golibs/utils/winapi"
 	"golang.org/x/sys/windows"
@@ -69,11 +70,14 @@ func GetWindowHandlesClientRects(handles []windows.HWND) []windows.Rect {
 	return result
 }
 
-func GetCaptureRect(windowHandles []windows.HWND) windows.Rect {
+func GetCaptureRect(windowHandles []windows.HWND) (windows.Rect, error) {
 	windowRects := GetWindowHandlesRects(windowHandles)
 	clientRects := GetWindowHandlesClientRects(windowHandles)
 
-	largestRectIndex, _ := FindLargestRect(windowRects)
+	largestRectIndex, err := FindLargestRect(windowRects)
+	if err != nil {
+		return windows.Rect{}, fmt.Errorf("[GetCaptureRect] failed find largest rect index:%s", err)
+	}
 
 	largestWindowRect := windowRects[largestRectIndex]
 	largestClientRect := clientRects[largestRectIndex]
@@ -87,5 +91,5 @@ func GetCaptureRect(windowHandles []windows.HWND) windows.Rect {
 	captureRect.Top += diffY / 2
 	captureRect.Bottom -= diffY / 2
 
-	return captureRect
+	return captureRect, nil
 }
