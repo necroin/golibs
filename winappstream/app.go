@@ -59,13 +59,13 @@ func NewCache(desktopHDC winapi.HDC, desktopCompatibleHDC winapi.HDC, captureRec
 	if err != nil {
 		return nil, fmt.Errorf("[NewCache] failed GlobalAlloc: %s", err)
 	}
-	finalizer.AddFunc(func() { winapi.GlobalUnlock(hmem) })
+	finalizer.AddFunc(func() { winapi.GlobalFree(hmem) })
 
 	memptr, err := winapi.GlobalLock(hmem)
 	if err != nil {
 		return nil, fmt.Errorf("[NewCache] failed GlobalLock: %s", err)
 	}
-	finalizer.AddFunc(func() { winapi.GlobalFree(hmem) })
+	finalizer.AddFunc(func() { winapi.GlobalUnlock(hmem) })
 
 	return &Cache{
 		captureRect:  captureRect,
