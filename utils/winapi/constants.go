@@ -45,3 +45,12 @@ const (
 	GMEM_ZEROINIT = 0x0040
 	GPTR          = GMEM_FIXED | GMEM_ZEROINIT
 )
+
+// LocalAlloc flags
+const (
+	LHND          = 0x0042
+	LMEM_FIXED    = 0x0000
+	LMEM_MOVEABLE = 0x0002
+	LMEM_ZEROINIT = 0x0040
+	LPTR          = LMEM_FIXED | LMEM_ZEROINIT
+)

@@ -24,7 +24,6 @@ type Cache struct {
 	captureRect  windows.Rect
 	bitmap       winapi.HBITMAP
 	bitmapHeader winapi.BITMAPINFOHEADER
-	hmem         winapi.HGLOBAL
 	memptr       unsafe.Pointer
 	finalizer    *finalizer.Finalizer
 }
@@ -54,25 +53,18 @@ func NewCache(desktopHDC winapi.HDC, desktopCompatibleHDC winapi.HDC, captureRec
 	bitmapHeader.BiCompression = winapi.BI_RGB
 	bitmapHeader.BiSizeImage = 0
 
-	bitmapDataSize := uintptr(((int64(imageWidth)*int64(bitmapHeader.BiBitCount) + 31) / 32) * 4 * int64(imageHeight))
-	hmem, err := winapi.GlobalAlloc(winapi.GMEM_MOVEABLE, bitmapDataSize)
+	bitmapDataSize := uint32(((int64(imageWidth)*int64(bitmapHeader.BiBitCount) + 31) / 32) * 4 * int64(imageHeight))
+	memptr, err := windows.LocalAlloc(windows.LMEM_FIXED, bitmapDataSize)
 	if err != nil {
-		return nil, fmt.Errorf("[NewCache] failed GlobalAlloc: %s", err)
+		return nil, fmt.Errorf("[NewCache] failed LocalAlloc: %s", err)
 	}
-	finalizer.AddFunc(func() { winapi.GlobalFree(hmem) })
-
-	memptr, err := winapi.GlobalLock(hmem)
-	if err != nil {
-		return nil, fmt.Errorf("[NewCache] failed GlobalLock: %s", err)
-	}
-	finalizer.AddFunc(func() { winapi.GlobalUnlock(hmem) })
+	finalizer.AddFunc(func() { windows.LocalFree(windows.Handle(memptr)) })
 
 	return &Cache{
 		captureRect:  captureRect,
 		bitmap:       bitmap,
 		bitmapHeader: bitmapHeader,
-		hmem:         hmem,
-		memptr:       memptr,
+		memptr:       unsafe.Pointer(memptr),
 		finalizer:    finalizer,
 	}, nil
 }
@@ -212,6 +204,7 @@ func (app *App) LaunchStream() {
 
 				img, err := app.CaptureImageScreenVersion()
 				if img == nil || err != nil {
+					fmt.Println(err)
 					continue
 				}
 				app.encodedData <- promise.NewPromise[image.Image, []byte](img, func(img image.Image) ([]byte, error) {
