@@ -135,11 +135,17 @@ func NewApp(pid winapi.ProcessId) (*App, error) {
 }
 
 func (app *App) Destroy() {
-	app.finalizer.Execute()
+	if app.finalizer != nil {
+		app.finalizer.Execute()
+		app.finalizer = nil
+	}
 }
 
 func (cache *Cache) Destroy() {
-	cache.finalizer.Execute()
+	if cache.finalizer != nil {
+		cache.finalizer.Execute()
+		cache.finalizer = nil
+	}
 }
 
 func (app *App) CaptureImageScreenVersion() (image.Image, error) {
