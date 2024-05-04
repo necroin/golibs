@@ -204,7 +204,6 @@ func (app *App) LaunchStream() {
 
 				img, err := app.CaptureImageScreenVersion()
 				if img == nil || err != nil {
-					fmt.Println(err)
 					continue
 				}
 				app.encodedData <- promise.NewPromise[image.Image, []byte](img, func(img image.Image) ([]byte, error) {
@@ -216,57 +215,3 @@ func (app *App) LaunchStream() {
 		}
 	}()
 }
-
-// func (app *App) CaptureImage() (*image.RGBA, error) {
-// 	largestWindowRect := app.captureRect
-// 	largestWidth := largestWindowRect.Right - largestWindowRect.Left
-// 	largestHeight := largestWindowRect.Bottom - largestWindowRect.Top
-
-// 	resultImage := image.NewRGBA(image.Rect(0, 0, int(largestWidth), int(largestHeight)))
-
-// 	for handleIndex, handle := range app.windowHandles {
-// 		fmt.Printf("Hanle index: %d\n", handleIndex)
-
-// 		handleRect := app.handlesRects[handleIndex]
-// 		handleClientRect := app.handlesClientRects[handleIndex]
-// 		fmt.Printf("Hanle Rect: %v\n", handleRect)
-// 		fmt.Printf("Hanle Client Rect: %v\n", handleClientRect)
-
-// 		handleWidth := handleRect.Right - handleRect.Left
-// 		handleHeight := handleRect.Bottom - handleRect.Top
-
-// 		handleClientWidth := handleClientRect.Right - handleClientRect.Left
-// 		handleClientHeight := handleClientRect.Bottom - handleClientRect.Top
-
-// 		diffX := handleWidth - handleClientWidth
-// 		diffY := handleHeight - handleClientHeight
-// 		fmt.Printf("Diff X: %d\n", diffX)
-// 		fmt.Printf("Diff Y: %d\n", diffY)
-
-// 		handleImage, err := CaptureWindowImage(handle, handleRect.Left, handleRect.Top, largestWidth, largestHeight, diffX, diffY, largestWidth, largestHeight)
-
-// 		if err == nil {
-// 			outputFile, _ := os.Create(fmt.Sprintf("test%d.png", handleIndex))
-// 			png.Encode(outputFile, handleImage)
-// 			outputFile.Close()
-// 			for x := handleImage.Bounds().Min.X; x < handleImage.Bounds().Max.X; x++ {
-// 				for y := handleImage.Bounds().Min.Y; y < handleImage.Bounds().Max.Y; y++ {
-// 					handlePixelColor := handleImage.RGBAAt(x, y)
-// 					if handlePixelColor.R == 0 && handlePixelColor.G == 0 && handlePixelColor.B == 0 {
-// 						continue
-// 					}
-// 					resultImageColor := resultImage.RGBAAt(x, y)
-// 					if resultImageColor.R == 0 && resultImageColor.G == 0 && resultImageColor.B == 0 {
-// 						resultImage.SetRGBA(x, y, handlePixelColor)
-// 					}
-// 				}
-// 			}
-// 		}
-
-// 	}
-
-// 	outputFile, _ := os.Create("test.png")
-// 	png.Encode(outputFile, resultImage)
-// 	outputFile.Close()
-// 	return resultImage, nil
-// }

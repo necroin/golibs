@@ -29,7 +29,7 @@ func main() {
 
 	// RecursiveFind(allProcesses, 19668, 0)
 
-	app, err := winappstream.NewApp(1936)
+	app, err := winappstream.NewApp(20548)
 	if err != nil {
 		panic(err)
 	}
