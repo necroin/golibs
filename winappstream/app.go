@@ -148,7 +148,12 @@ func (cache *Cache) Destroy() {
 	}
 }
 
+func (app *App) UpdateHandles() {
+	app.windowHandles = winutils.GetWindowHandlesByProcessId(app.pid)
+}
+
 func (app *App) CaptureImageScreenVersion() (image.Image, error) {
+	app.UpdateHandles()
 	captureRect, err := winutils.GetCaptureRect(app.windowHandles)
 	if err != nil {
 		return nil, fmt.Errorf("[CaptureImageScreenVersion] failed get capture rect: %s", err)
