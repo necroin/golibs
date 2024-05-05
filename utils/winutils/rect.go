@@ -24,6 +24,10 @@ func RectEqual(value1 windows.Rect, value2 windows.Rect) bool {
 	return value1.Left == value2.Left && value1.Top == value2.Top && value1.Right == value2.Right && value1.Bottom == value2.Bottom
 }
 
+func IsValidRect(rect windows.Rect) bool {
+	return !(RectWidth(rect) == 0 || RectHeight(rect) == 0)
+}
+
 func FindLargestRect(values []windows.Rect) (int, error) {
 	if len(values) == 0 {
 		return 0, errors.New("no rects")
@@ -70,7 +74,20 @@ func GetWindowHandlesClientRects(handles []windows.HWND) []windows.Rect {
 	return result
 }
 
-func GetCaptureRect(windowHandles []windows.HWND) (windows.Rect, error) {
+func GetCaptureRect(windowRect windows.Rect, clientRect windows.Rect) windows.Rect {
+	diffX := (RectWidth(windowRect) - RectWidth(clientRect)) / 2
+	diffY := (RectHeight(windowRect) - RectHeight(clientRect)) / 2
+
+	captureRect := windowRect
+	captureRect.Left += diffX
+	captureRect.Right -= diffX
+	captureRect.Top += diffY / 2
+	captureRect.Bottom -= diffY / 2
+
+	return captureRect
+}
+
+func GetCaptureRectByHandles(windowHandles []windows.HWND) (windows.Rect, error) {
 	windowRects := GetWindowHandlesRects(windowHandles)
 	clientRects := GetWindowHandlesClientRects(windowHandles)
 
@@ -81,15 +98,5 @@ func GetCaptureRect(windowHandles []windows.HWND) (windows.Rect, error) {
 
 	largestWindowRect := windowRects[largestRectIndex]
 	largestClientRect := clientRects[largestRectIndex]
-
-	diffX := (RectWidth(largestWindowRect) - RectWidth(largestClientRect)) / 2
-	diffY := (RectHeight(largestWindowRect) - RectHeight(largestClientRect)) / 2
-
-	captureRect := largestWindowRect
-	captureRect.Left += diffX
-	captureRect.Right -= diffX
-	captureRect.Top += diffY / 2
-	captureRect.Bottom -= diffY / 2
-
-	return captureRect, nil
+	return GetCaptureRect(largestWindowRect, largestClientRect), nil
 }

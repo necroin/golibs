@@ -103,7 +103,7 @@ func NewApp(pid winapi.ProcessId) (*App, error) {
 	}
 	finalizer.AddFunc(func() { winapi.DeleteDC(desktopCompatibleHDC) })
 
-	captureRect, err := winutils.GetCaptureRect(windowHandles)
+	captureRect, err := winutils.GetCaptureRectByHandles(windowHandles)
 	if err != nil {
 		return nil, fmt.Errorf("[NewApp] failed get capture rect: %s", err)
 	}
@@ -154,7 +154,7 @@ func (app *App) UpdateHandles() {
 
 func (app *App) CaptureImageScreenVersion() (image.Image, error) {
 	app.UpdateHandles()
-	captureRect, err := winutils.GetCaptureRect(app.windowHandles)
+	captureRect, err := winutils.GetCaptureRectByHandles(app.windowHandles)
 	if err != nil {
 		return nil, fmt.Errorf("[CaptureImageScreenVersion] failed get capture rect: %s", err)
 	}
