@@ -14,10 +14,10 @@ const (
 type File[K comparable] struct {
 	file       *os.File
 	data       map[K]int64
-	rawHandler func([]string) K
+	rowHandler func([]string) K
 }
 
-func NewFile[K comparable](path string, rawHandler func(data []string) K) (*File[K], error) {
+func NewFile[K comparable](path string, rowHandler func(data []string) K) (*File[K], error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("[%s] failed open file: %s", libName, err)
@@ -26,7 +26,7 @@ func NewFile[K comparable](path string, rawHandler func(data []string) K) (*File
 	return &File[K]{
 		file:       file,
 		data:       map[K]int64{},
-		rawHandler: rawHandler,
+		rowHandler: rowHandler,
 	}, nil
 }
 
@@ -45,7 +45,7 @@ func (file File[K]) Index() error {
 		if err != nil {
 			return fmt.Errorf("[%s] [Index] failed read data: %s", libName, err)
 		}
-		file.data[file.rawHandler(record)] = offset
+		file.data[file.rowHandler(record)] = offset
 	}
 	return nil
 }
