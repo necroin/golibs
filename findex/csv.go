@@ -13,10 +13,22 @@ type CSVFile[K comparable] struct {
 	rowHandler func([]string) K
 }
 
-func NewCSVFile[K comparable](path string, rowHandler func(data []string) K) (File[K], error) {
+func NewCSV[K comparable](path string, rowHandler func(data []string) K) (File[K], error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("[findex] failed open file: %s", err)
+		return nil, fmt.Errorf("[findex] [NewCSV] failed open file: %s", err)
+	}
+
+	return &CSVFile[K]{
+		file:       file,
+		data:       map[K]int64{},
+		rowHandler: rowHandler,
+	}, nil
+}
+
+func NewCSVFromFile[K comparable](file *os.File, rowHandler func(data []string) K) (File[K], error) {
+	if file == nil {
+		return nil, fmt.Errorf("[findex] [NewCSVFromFile] file is nil")
 	}
 
 	return &CSVFile[K]{
