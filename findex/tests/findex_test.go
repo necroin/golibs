@@ -8,7 +8,7 @@ import (
 )
 
 func TestMain(t *testing.T) {
-	indexedFile, err := findex.NewFile[string](
+	indexedFile, err := findex.NewCSVFile[string](
 		"data.csv",
 		func(data []string) string {
 			return data[0]
