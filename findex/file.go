@@ -5,7 +5,7 @@ type Row[T any] interface {
 	*T
 }
 
-type File[K comparable, V any, R Row[V]] interface {
+type File[K comparable, V any] interface {
 	Close()
 	Index() error
 	RowCount() int64

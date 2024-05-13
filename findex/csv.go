@@ -15,7 +15,7 @@ type CSVFile[K comparable, V any, R Row[V]] struct {
 	rowHandler func([]string) K
 }
 
-func NewCSV[K comparable, V any, R Row[V]](path string, rowHandler func(data []string) K) (File[K, V, R], error) {
+func NewCSV[K comparable, V any, R Row[V]](path string, rowHandler func(data []string) K) (File[K, V], error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("[findex] [NewCSV] failed open file: %s", err)
