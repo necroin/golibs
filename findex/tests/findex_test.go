@@ -2,13 +2,45 @@ package tests
 
 import (
 	"slices"
+	"strconv"
 	"testing"
 
 	"github.com/necroin/golibs/findex"
 )
 
+type Worker struct {
+	Id         string
+	FirstName  string
+	SecondName string
+	Mail       string
+	Gmail      string
+	Job        string
+}
+
+func (worker *Worker) UnmarshalCsv(data []string) error {
+	worker.Id = data[0]
+	worker.FirstName = data[1]
+	worker.SecondName = data[2]
+	worker.Mail = data[3]
+	worker.Gmail = data[4]
+	worker.Job = data[5]
+
+	return nil
+}
+
+func (worker *Worker) MarshalCsv() []string {
+	return []string{
+		worker.Id,
+		worker.FirstName,
+		worker.SecondName,
+		worker.Mail,
+		worker.Gmail,
+		worker.Job,
+	}
+}
+
 func TestMain(t *testing.T) {
-	indexedFile, err := findex.NewCSV[string](
+	indexedFile, err := findex.NewCSV[string, Worker](
 		"data.csv",
 		func(data []string) string {
 			return data[0]
@@ -30,11 +62,20 @@ func TestMain(t *testing.T) {
 	}
 
 	for index, data := range compareDataMap {
-		indexedData, err := indexedFile.Find(index)
+		keyIndexedData, err := indexedFile.FindKey(index)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if !slices.Equal(indexedData, data) {
+		if !slices.Equal(keyIndexedData.MarshalCsv(), data) {
+			t.Fatalf("%s != %s", keyIndexedData, data)
+		}
+
+		intIndex, _ := strconv.Atoi(index)
+		indexedData, err := indexedFile.FindIndex(int64(intIndex) - 100)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !slices.Equal(indexedData.MarshalCsv(), data) {
 			t.Fatalf("%s != %s", indexedData, data)
 		}
 	}

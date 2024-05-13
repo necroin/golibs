@@ -1,7 +1,13 @@
 package findex
 
-type File[K comparable] interface {
+type Row[T any] interface {
+	UnmarshalCsv([]string) error
+	*T
+}
+
+type File[K comparable, V any, R Row[V]] interface {
 	Close()
 	Index() error
-	Find(key K) ([]string, error)
+	FindKey(key K) (*V, error)
+	FindIndex(index int64) (*V, error)
 }
