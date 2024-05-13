@@ -10,5 +10,6 @@ type File[K comparable, V any] interface {
 	Index() error
 	RowCount() int64
 	FindKey(key K) (*V, error)
+	FindKeySlice(key K) ([]*V, error)
 	FindIndex(index int64) (*V, error)
 }

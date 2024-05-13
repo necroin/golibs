@@ -9,7 +9,7 @@ import (
 
 type CSVFile[K comparable, V any, R Row[V]] struct {
 	file       *os.File
-	data       map[K]int64
+	data       map[K][]int64
 	idata      map[int64]int64
 	rowsCount  int64
 	rowHandler func([]string) K
@@ -23,7 +23,7 @@ func NewCSV[K comparable, V any, R Row[V]](path string, rowHandler func(data []s
 
 	return &CSVFile[K, V, R]{
 		file:       file,
-		data:       map[K]int64{},
+		data:       map[K][]int64{},
 		idata:      map[int64]int64{},
 		rowHandler: rowHandler,
 	}, nil
@@ -34,7 +34,7 @@ func (file *CSVFile[K, V, R]) Close() {
 }
 
 func (file *CSVFile[K, V, R]) Index() error {
-	file.data = map[K]int64{}
+	file.data = map[K][]int64{}
 	file.idata = map[int64]int64{}
 
 	if _, err := file.file.Seek(0, io.SeekStart); err != nil {
@@ -57,7 +57,7 @@ func (file *CSVFile[K, V, R]) Index() error {
 		rowsCount = rowsCount + 1
 
 		if file.rowHandler != nil {
-			file.data[file.rowHandler(record)] = offset
+			file.data[file.rowHandler(record)] = append(file.data[file.rowHandler(record)], offset)
 		}
 
 		file.idata[rowsCount-1] = offset
@@ -89,17 +89,36 @@ func (file *CSVFile[K, V, R]) FindOffset(offset int64) (*V, error) {
 }
 
 func (file *CSVFile[K, V, R]) FindKey(key K) (*V, error) {
-	offset, ok := file.data[key]
+	offsets, ok := file.data[key]
 	if !ok {
 		return nil, fmt.Errorf("[findex] [CSVFile] [FindKey] no data for key %v", key)
 	}
 
-	result, err := file.FindOffset(offset)
+	result, err := file.FindOffset(offsets[0])
 	if err != nil {
 		return nil, fmt.Errorf("[findex] [CSVFile] [FindKey] -> %s", err)
 	}
 
 	return result, nil
+}
+
+func (file *CSVFile[K, V, R]) FindKeySlice(key K) ([]*V, error) {
+	resultList := []*V{}
+
+	offsets, ok := file.data[key]
+	if !ok {
+		return nil, fmt.Errorf("[findex] [CSVFile] [FindKeySlice] no data for key %v", key)
+	}
+
+	for _, offset := range offsets {
+		result, err := file.FindOffset(offset)
+		if err != nil {
+			return nil, fmt.Errorf("[findex] [CSVFile] [FindKeySlice] -> %s", err)
+		}
+		resultList = append(resultList, result)
+	}
+
+	return resultList, nil
 }
 
 func (file *CSVFile[K, V, R]) FindIndex(index int64) (*V, error) {
