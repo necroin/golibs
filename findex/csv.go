@@ -11,6 +11,7 @@ type CSVFile[K comparable, V any, R Row[V]] struct {
 	file       *os.File
 	data       map[K]int64
 	idata      map[int64]int64
+	rowsCount  int64
 	rowHandler func([]string) K
 }
 
@@ -40,7 +41,7 @@ func (file *CSVFile[K, V, R]) Index() error {
 		return fmt.Errorf("[findex] [CSVFile] [Index] failed reset file offset: %s", err)
 	}
 
-	rowIndex := int64(0)
+	rowsCount := int64(0)
 	csvReader := csv.NewReader(file.file)
 	for {
 		offset := csvReader.InputOffset()
@@ -48,14 +49,26 @@ func (file *CSVFile[K, V, R]) Index() error {
 		if err == io.EOF {
 			break
 		}
+
 		if err != nil {
 			return fmt.Errorf("[findex] [CSVFile] [Index] failed read data: %s", err)
 		}
-		file.data[file.rowHandler(record)] = offset
-		file.idata[rowIndex] = offset
-		rowIndex = rowIndex + 1
+
+		rowsCount = rowsCount + 1
+
+		if file.rowHandler != nil {
+			file.data[file.rowHandler(record)] = offset
+		}
+
+		file.idata[rowsCount-1] = offset
 	}
+
+	file.rowsCount = rowsCount
 	return nil
+}
+
+func (file *CSVFile[K, V, R]) RowCount() int64 {
+	return file.rowsCount
 }
 
 func (file *CSVFile[K, V, R]) FindOffset(offset int64) (*V, error) {
