@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	encodedDataChannelLen = 10
+	encodedDataChannelLen = 1
 )
 
 type Cache struct {
