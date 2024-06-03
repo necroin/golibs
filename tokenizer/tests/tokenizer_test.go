@@ -22,10 +22,10 @@ func TestTokenizer(t *testing.T) {
 		tokenizer.NewToken("NUMBER", `[0-9]+`),
 	)
 
-	if err := tokenizer.Parse([]byte(expression)); err != nil {
+	parsedTokens, err := tokenizer.Parse([]byte(expression))
+	if err != nil {
 		t.Fatal(err)
 	}
-	parsedTokens := tokenizer.Tokens()
 
 	expectedTokens := []string{
 		"NUMBER",
