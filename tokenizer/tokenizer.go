@@ -14,22 +14,17 @@ type Tokenizer struct {
 }
 
 func NewTokenizer(tokens ...*Token) *Tokenizer {
+	tokens = tokens[:]
+
+	sort.Slice(tokens, func(i, j int) bool {
+		return len(tokens[i].pattern) > len(tokens[j].pattern)
+	})
+
 	return &Tokenizer{
 		tokens:       tokens,
-		values:       []*Token{},
 		ignoreSpaces: true,
 		ignoreTabs:   true,
 	}
-}
-
-func (tokenizer *Tokenizer) Tokens() []*Token {
-	return tokenizer.values
-}
-
-func (tokenizer *Tokenizer) sortFindTokens() {
-	sort.Slice(tokenizer.tokens, func(i, j int) bool {
-		return len(tokenizer.tokens[i].pattern) > len(tokenizer.tokens[j].pattern)
-	})
 }
 
 func (tokenizer *Tokenizer) Find(text []byte) (*Token, error) {
@@ -47,9 +42,8 @@ func (tokenizer *Tokenizer) Find(text []byte) (*Token, error) {
 	return nil, fmt.Errorf("[Tokenizer] no tokens matched: %s", text)
 }
 
-func (tokenizer *Tokenizer) Parse(text []byte) error {
-	tokenizer.sortFindTokens()
-	tokenizer.values = []*Token{}
+func (tokenizer *Tokenizer) Parse(text []byte) ([]*Token, error) {
+	tokens := []*Token{}
 
 	for len(text) != 0 {
 		trimCutset := ""
@@ -66,16 +60,20 @@ func (tokenizer *Tokenizer) Parse(text []byte) error {
 
 		token, err := tokenizer.Find(text)
 		if err != nil {
-			return fmt.Errorf("[Tokenizer] [Parse] failed parse text: %s", err)
+			return nil, fmt.Errorf("[Tokenizer] [Parse] failed parse text: %s", err)
 		}
 
-		tokenizer.values = append(tokenizer.values, token)
+		tokens = append(tokens, token)
 		text = text[len(token.Value()):]
 	}
 
-	return nil
+	return tokens, nil
 }
 
 func (tokenizer *Tokenizer) SetIgnoreSpaces(value bool) {
 	tokenizer.ignoreSpaces = value
+}
+
+func (tokenizer *Tokenizer) SetIgnoreTabs(value bool) {
+	tokenizer.ignoreTabs = value
 }

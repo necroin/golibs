@@ -5,6 +5,10 @@ import (
 	"sort"
 )
 
+type ParseOptions struct {
+	LogFunc func(format string, args ...any)
+}
+
 type Parser[T any] struct {
 	rules []*Rule[T]
 }
@@ -27,33 +31,45 @@ func (parser *Parser[T]) sortRules() {
 	})
 }
 
-func (parser *Parser[T]) Parse(tokens ...Token[T]) error {
-	fmt.Println(parser.rules)
+func (parser *Parser[T]) Parse(options ParseOptions, tokens ...Token[T]) (Token[T], error) {
 	parser.sortRules()
-	fmt.Println(parser.rules)
+	if options.LogFunc != nil {
+		options.LogFunc("[Parser] parse rules: %s", parser.rules)
+	}
 
 	offset := 0
 	matched := false
 
 	for len(tokens) > 1 || matched {
-		// fmt.Printf("Iteration tokens: %s\n", tokens)
-		// fmt.Printf("Iteration offset: %d\n", offset)
+		if options.LogFunc != nil {
+			options.LogFunc("[Parser] iteration tokens: %s", tokens)
+			options.LogFunc("[Parser] iteration offset: %d", offset)
+		}
 		if offset == len(tokens) {
-			return fmt.Errorf("failed parse tokens: %s", tokens)
+			return nil, fmt.Errorf("[Parser] failed parse tokens: %s", tokens)
 		}
 		matched = false
 		for _, rule := range parser.rules {
-			// fmt.Printf("Rule: %s\n", rule)
+			if options.LogFunc != nil {
+				options.LogFunc("[Parser] rule: %s", rule)
+			}
 
 			ruleTokensCount := len(rule.tokens)
 			tokensCount := len(tokens)
-			if ruleTokensCount+offset > tokensCount {
+			if offset+ruleTokensCount > tokensCount {
+				if options.LogFunc != nil {
+					options.LogFunc("[Parser] decline rule: offset+ruleTokensCount (%d) > tokensCount (%d)", offset+ruleTokensCount, tokensCount)
+				}
 				continue
 			}
 			matchTokens := tokens[offset : ruleTokensCount+offset]
-			// fmt.Printf("Match tokens: %s\n", matchTokens)
+			if options.LogFunc != nil {
+				options.LogFunc("[Parser] match tokens: %s", matchTokens)
+			}
 			if rule.CompareTokens(matchTokens) {
-				fmt.Printf("Reduce by rule: %s\n", rule)
+				if options.LogFunc != nil {
+					options.LogFunc("[Parser] reduce by rule: %s", rule)
+				}
 				newTokens := append(tokens[:offset], NewParserToken[T](rule.name, rule.handler(matchTokens)))
 				newTokens = append(newTokens, tokens[ruleTokensCount+offset:]...)
 				tokens = newTokens
@@ -66,8 +82,10 @@ func (parser *Parser[T]) Parse(tokens ...Token[T]) error {
 			offset += 1
 		}
 	}
-	fmt.Printf("Final tokens: %s\n", tokens)
-	fmt.Printf("Result: %v\n", tokens[0].Value())
+	if options.LogFunc != nil {
+		options.LogFunc("[Parser] final tokens: %s", tokens)
+		fmt.Printf("[Parser] result token value: %v", tokens[0].Value())
+	}
 
-	return nil
+	return tokens[0], nil
 }

@@ -38,5 +38,5 @@ func (rule Rule[T]) CompareTokens(tokens []Token[T]) bool {
 }
 
 func (rule Rule[T]) String() string {
-	return fmt.Sprintf("{%s -> %s}", rule.name, rule.pattern)
+	return fmt.Sprintf("{%s -> %s}", rule.pattern, rule.name)
 }
