@@ -62,9 +62,9 @@ func TestExpression(t *testing.T) {
 		}
 	}))
 
-	expressionParser.AddRule(parser.NewRule[ExpressionData]("EXPR", "OPEN_BRACKET EXPR OPERATOR EXPR CLOSE_BRACKET", func(tokens []parser.Token[ExpressionData]) ExpressionData {
+	expressionParser.AddRule(parser.NewRule[ExpressionData]("EXPR", "OPEN_BRACKET EXPR CLOSE_BRACKET", func(tokens []parser.Token[ExpressionData]) ExpressionData {
 		return ExpressionData{
-			IntValue: Calculate(tokens[1].Value().IntValue, tokens[3].Value().IntValue, tokens[2].Value().StringValue),
+			IntValue: tokens[1].Value().IntValue,
 		}
 	}))
 
