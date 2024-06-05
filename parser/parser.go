@@ -84,7 +84,7 @@ func (parser *Parser[T]) Parse(options ParseOptions, tokens ...Token[T]) (Token[
 	}
 	if options.LogFunc != nil {
 		options.LogFunc("[Parser] final tokens: %s", tokens)
-		fmt.Printf("[Parser] result token value: %v", tokens[0].Value())
+		options.LogFunc("[Parser] result token value: %v", tokens[0].Value())
 	}
 
 	return tokens[0], nil
