@@ -58,7 +58,7 @@ func TestParser(t *testing.T) {
 	}
 }
 
-func TestParserCustom(t *testing.T) {
+func TestParser_CustomToken(t *testing.T) {
 	parserInstance := parser.NewParser[string]()
 
 	parserInstance.AddRule(parser.NewRule[string]("EXPR", "TEXT", func(tokens []parser.Token[string]) string {
@@ -82,5 +82,25 @@ func TestParserCustom(t *testing.T) {
 
 	if result.Value() != "Hello World" {
 		t.Fatal("Wrong result")
+	}
+}
+
+func TestParser_Empty(t *testing.T) {
+	parserInstance := parser.NewParser[int]()
+
+	parserInstance.AddRule(parser.NewRule[int]("EXPR", "NUMBER", func(tokens []parser.Token[int]) int {
+		return tokens[0].Value()
+	}))
+	parserInstance.AddRule(parser.NewRule[int]("EXPR", "EXPR OPERATOR EXPR", func(tokens []parser.Token[int]) int {
+		return tokens[0].Value() + tokens[2].Value()
+	}))
+
+	result, err := parserInstance.Parse(
+		parser.ParseOptions{
+			LogFunc: func(format string, args ...any) { fmt.Printf(format+"\n", args...) },
+		},
+	)
+	if result != nil && err.Error() != "[Parser] zero tokens count" {
+		t.Fatal(err)
 	}
 }

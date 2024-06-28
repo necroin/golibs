@@ -32,6 +32,10 @@ func (parser *Parser[T]) sortRules() {
 }
 
 func (parser *Parser[T]) Parse(options ParseOptions, tokens ...Token[T]) (Token[T], error) {
+	if len(tokens) == 0 {
+		return nil, fmt.Errorf("[Parser] zero tokens count")
+	}
+
 	parser.sortRules()
 	if options.LogFunc != nil {
 		options.LogFunc("[Parser] parse rules: %s", parser.rules)
