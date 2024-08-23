@@ -53,6 +53,13 @@ func (counter *Counter) Write(writer io.Writer) {
 	writer.Write([]byte(fmt.Sprintf("%s %v\n", counter.description.Name, counter.value.Get())))
 }
 
+func (counter *Counter) JsonData() any {
+	return MetricJsonData{
+		Description: *counter.description,
+		Data:        counter.value.Get(),
+	}
+}
+
 type CounterVector struct {
 	*MetricVector[*Counter]
 	description *Description
@@ -84,4 +91,22 @@ func (counterVector *CounterVector) Write(writer io.Writer) {
 		}
 		writer.Write([]byte(fmt.Sprintf("%s{%s} %v\n", counterVector.description.Name, strings.Join(labels, ","), counter.Get())))
 	})
+}
+
+func (counterVector *CounterVector) JsonData() any {
+	data := map[string]float64{}
+
+	counterVector.data.Iterate(func(key string, counter *Counter) {
+		data[key] = counter.Get()
+	})
+
+	return MetricVectorJsonData{
+		Description: Description{
+			Name: counterVector.description.Name,
+			Type: "counter_vector",
+			Help: counterVector.description.Help,
+		},
+		Labels: counterVector.labels,
+		Data:   data,
+	}
 }

@@ -1,7 +1,7 @@
 package metrics
 
 type Description struct {
-	Name string
-	Type string
-	Help string
+	Name string `json:"name"`
+	Type string `json:"type"`
+	Help string `json:"help"`
 }

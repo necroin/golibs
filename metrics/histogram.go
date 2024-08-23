@@ -8,6 +8,13 @@ import (
 	"github.com/necroin/golibs/concurrent"
 )
 
+type HistogramJsonDataItem struct {
+	Buckets  Buckets   `json:"buckets,omitempty"`
+	MinusInf float64   `json:"minus_inf"`
+	PlusInf  float64   `json:"plus_inf"`
+	Values   []float64 `json:"values"`
+}
+
 type Buckets struct {
 	Start int
 	Range uint
@@ -121,6 +128,25 @@ func (histogram *Histogram) Write(writer io.Writer) {
 	writer.Write([]byte(fmt.Sprintf("%s_count %v\n", histogram.description.Name, count)))
 }
 
+func (histogram *Histogram) JsonData() any {
+	values := []float64{}
+
+	for bucketIterator := 0; bucketIterator < int(histogram.buckets.Count); bucketIterator++ {
+		counter, _ := histogram.values.At(uint(bucketIterator))
+		values = append(values, counter.Get())
+	}
+
+	return MetricJsonData{
+		Description: *histogram.description,
+		Data: HistogramJsonDataItem{
+			Buckets:  histogram.buckets,
+			MinusInf: histogram.minusInf.Get(),
+			PlusInf:  histogram.plusInf.Get(),
+			Values:   values,
+		},
+	}
+}
+
 type HistogramVector struct {
 	*MetricVector[*Histogram]
 	description *Description
@@ -181,4 +207,34 @@ func (histogramVector *HistogramVector) Write(writer io.Writer) {
 		writer.Write([]byte(fmt.Sprintf("%s_sum %v\n", histogramVector.description.Name, sum)))
 		writer.Write([]byte(fmt.Sprintf("%s_count %v\n", histogramVector.description.Name, count)))
 	})
+}
+
+func (histogramVector *HistogramVector) JsonData() any {
+	items := map[string]HistogramJsonDataItem{}
+
+	histogramVector.data.Iterate(func(key string, histogram *Histogram) {
+		values := []float64{}
+
+		for bucketIterator := 0; bucketIterator < int(histogram.buckets.Count); bucketIterator++ {
+			counter, _ := histogram.values.At(uint(bucketIterator))
+			values = append(values, counter.Get())
+		}
+
+		items[key] = HistogramJsonDataItem{
+			Buckets:  histogram.buckets,
+			MinusInf: histogram.minusInf.Get(),
+			PlusInf:  histogram.plusInf.Get(),
+			Values:   values,
+		}
+	})
+
+	return MetricVectorJsonData{
+		Description: Description{
+			Name: histogramVector.description.Name,
+			Type: "histogram_vector",
+			Help: histogramVector.description.Help,
+		},
+		Labels: histogramVector.labels,
+		Data:   items,
+	}
 }

@@ -45,6 +45,13 @@ func (label *Label) Write(writer io.Writer) {
 	writer.Write([]byte(fmt.Sprintf("%s %s\n", label.description.Name, label.value.Get())))
 }
 
+func (label *Label) JsonData() any {
+	return MetricJsonData{
+		Description: *label.description,
+		Data:        label.value.Get(),
+	}
+}
+
 type LabelVector struct {
 	*MetricVector[*Label]
 	description *Description
@@ -76,4 +83,22 @@ func (labelVector *LabelVector) Write(writer io.Writer) {
 		}
 		writer.Write([]byte(fmt.Sprintf("%s{%s} %v\n", labelVector.description.Name, strings.Join(labels, ","), label.value.Get())))
 	})
+}
+
+func (labelVector *LabelVector) JsonData() any {
+	data := map[string]string{}
+
+	labelVector.data.Iterate(func(key string, label *Label) {
+		data[key] = label.Get()
+	})
+
+	return MetricVectorJsonData{
+		Description: Description{
+			Name: labelVector.description.Name,
+			Type: "label_vector",
+			Help: labelVector.description.Help,
+		},
+		Labels: labelVector.labels,
+		Data:   data,
+	}
 }

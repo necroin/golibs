@@ -61,6 +61,13 @@ func (gauge *Gauge) Write(writer io.Writer) {
 	writer.Write([]byte(fmt.Sprintf("%s %v\n", gauge.description.Name, gauge.value.Get())))
 }
 
+func (gauge *Gauge) JsonData() any {
+	return MetricJsonData{
+		Description: *gauge.description,
+		Data:        gauge.value.Get(),
+	}
+}
+
 type GaugeVector struct {
 	*MetricVector[*Gauge]
 	description *Description
@@ -92,4 +99,22 @@ func (gaugeVector *GaugeVector) Write(writer io.Writer) {
 		}
 		writer.Write([]byte(fmt.Sprintf("%s{%s} %v\n", gaugeVector.description.Name, strings.Join(labels, ","), gauge.value.Get())))
 	})
+}
+
+func (gaugeVector *GaugeVector) JsonData() any {
+	data := map[string]float64{}
+
+	gaugeVector.data.Iterate(func(key string, gauge *Gauge) {
+		data[key] = gauge.Get()
+	})
+
+	return MetricVectorJsonData{
+		Description: Description{
+			Name: gaugeVector.description.Name,
+			Type: "gauge_vector",
+			Help: gaugeVector.description.Help,
+		},
+		Labels: gaugeVector.labels,
+		Data:   data,
+	}
 }

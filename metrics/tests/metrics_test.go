@@ -50,11 +50,12 @@ func TestMetrics(t *testing.T) {
 	registry.Register(histogramVector)
 
 	http.Handle("/metrics", registry.Handler())
+	http.Handle("/metrics/json", registry.JsonHandler())
 
 	SimMetricsWork()
 
 	go http.ListenAndServe("localhost:3301", nil)
-	time.Sleep(10 * time.Second)
+	time.Sleep(20 * time.Second)
 }
 
 func SimMetricsWork() {

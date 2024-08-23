@@ -9,9 +9,21 @@ import (
 
 type Labels map[string]string
 
+type MetricJsonData struct {
+	Description Description `json:"description"`
+	Data        any         `json:"data"`
+}
+
+type MetricVectorJsonData struct {
+	Description Description `json:"description"`
+	Labels      []string    `json:"labels"`
+	Data        any         `json:"data"`
+}
+
 type Metric interface {
 	Description() *Description
 	Write(io.Writer)
+	JsonData() any
 }
 
 type MetricVector[T Metric] struct {
