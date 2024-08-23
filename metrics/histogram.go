@@ -147,6 +147,15 @@ func (histogram *Histogram) JsonData() any {
 	}
 }
 
+func (histogram *Histogram) Reset() {
+	histogram.minusInf.Reset()
+	histogram.plusInf.Reset()
+	for bucketIterator := 0; bucketIterator < int(histogram.buckets.Count); bucketIterator++ {
+		counter, _ := histogram.values.At(uint(bucketIterator))
+		counter.Reset()
+	}
+}
+
 type HistogramVector struct {
 	*MetricVector[*Histogram]
 	description *Description
@@ -237,4 +246,10 @@ func (histogramVector *HistogramVector) JsonData() any {
 		Labels: histogramVector.labels,
 		Data:   items,
 	}
+}
+
+func (histogramVector *HistogramVector) Reset() {
+	histogramVector.data.Iterate(func(key string, histogram *Histogram) {
+		histogram.Reset()
+	})
 }

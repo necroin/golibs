@@ -24,6 +24,7 @@ type Metric interface {
 	Description() *Description
 	Write(io.Writer)
 	JsonData() any
+	Reset()
 }
 
 type MetricVector[T Metric] struct {

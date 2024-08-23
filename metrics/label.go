@@ -52,6 +52,10 @@ func (label *Label) JsonData() any {
 	}
 }
 
+func (label *Label) Reset() {
+	label.Set("")
+}
+
 type LabelVector struct {
 	*MetricVector[*Label]
 	description *Description
@@ -101,4 +105,10 @@ func (labelVector *LabelVector) JsonData() any {
 		Labels: labelVector.labels,
 		Data:   data,
 	}
+}
+
+func (labelVector *LabelVector) Reset() {
+	labelVector.data.Iterate(func(key string, label *Label) {
+		label.Reset()
+	})
 }

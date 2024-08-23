@@ -60,6 +60,10 @@ func (counter *Counter) JsonData() any {
 	}
 }
 
+func (counter *Counter) Reset() {
+	counter.set(0)
+}
+
 type CounterVector struct {
 	*MetricVector[*Counter]
 	description *Description
@@ -109,4 +113,10 @@ func (counterVector *CounterVector) JsonData() any {
 		Labels: counterVector.labels,
 		Data:   data,
 	}
+}
+
+func (counterVector *CounterVector) Reset() {
+	counterVector.data.Iterate(func(key string, counter *Counter) {
+		counter.Reset()
+	})
 }

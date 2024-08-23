@@ -68,6 +68,10 @@ func (gauge *Gauge) JsonData() any {
 	}
 }
 
+func (gauge *Gauge) Reset() {
+	gauge.Set(0)
+}
+
 type GaugeVector struct {
 	*MetricVector[*Gauge]
 	description *Description
@@ -117,4 +121,10 @@ func (gaugeVector *GaugeVector) JsonData() any {
 		Labels: gaugeVector.labels,
 		Data:   data,
 	}
+}
+
+func (gaugeVector *GaugeVector) Reset() {
+	gaugeVector.data.Iterate(func(key string, gauge *Gauge) {
+		gauge.Reset()
+	})
 }
