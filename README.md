@@ -6,12 +6,10 @@
 - [Tokenizer](#Tokenizer) - Parses given text to tokens.
 ## CSV
 Reads csv files uses tags.
-___
 ### Install
 ```sh
-go get github.com/necroin/golibs/csv
+go get github.com/necroin/golibs/libs/csv
 ```
-___
 ### Load file
 1. Use "csv" tag in struct.
 - String read support
@@ -63,7 +61,6 @@ if err := csv.UnmarshalData(data, &rows); err != nil {
 	// error handle
 }
 ```
-___
 ### Save data to file
 ```Go
 file, err := os.Create("data.csv")
@@ -93,15 +90,13 @@ if err := csv.Marshal(file, data); err != nil {
 	// error handle
 }
 ```
-___
+
 ## Concurrent
 Provides thread-safe containers and atomic types.
-___
 ### Install
 ```sh
-go get github.com/necroin/golibs/concurrent
+go get github.com/necroin/golibs/libs/concurrent
 ```
-___
 ### Types
 - `AtomicValue[T]`
 	- Functions:
@@ -158,7 +153,7 @@ ___
 		- `Pos() uint`
 		- `Set(value V) error `
 		- `Equal(other *ConcurrentSliceIterator[V]) bool`
-___
+
 ## Metrics
 Provides thread-safe metrics.
 - `Counter`
@@ -166,12 +161,11 @@ Provides thread-safe metrics.
 - `Label`
 - `Histogram`
 - `The above vectorized metrics with labels`
-___
 ### Install
 ```sh
-go get github.com/necroin/golibs/metrics
+go get github.com/necroin/golibs/libs/metrics
 ```
-___
+### Types
 - `Counter` and `CounterVector`
 ```Go
 package main
@@ -283,15 +277,13 @@ func main() {
 	http.ListenAndServe("localhost:3301", nil)
 }
 ```
-___
+
 ## FSM
 Provides finite state machine logic.
-___
 ### Install
 ```sh
-go get github.com/necroin/golibs/fsm
+go get github.com/necroin/golibs/libs/fsm
 ```
-___
 Types:
 - `FSM[Args]`
 	- Functions:
@@ -304,20 +296,34 @@ Types:
 - `State[Args]`
 	- Methoods:
 		- `AddTransition(handler func(Args) *State[Args])`
-___
+
 ## Tokenizer
 Parses given text to tokens.
-___
 ### Install
 ```sh
-go get github.com/necroin/golibs/tokenizer
+go get github.com/necroin/golibs/libs/tokenizer
 ```
-___
+Types:
+- `Tokenizer`
+	- Functions:
+		- `NewTokenizer(tokens ...*Token)` - Creates new Tokenizer.
+	- Methoods:
+		- `Find(text []byte) (*Token, error)`
+		- `Parse(text []byte) ([]*Token, error)`
+		- `SetIgnoreSpaces(value bool)`
+		- `SetIgnoreTabs(value bool)`
+- `Token`
+	- Functions:
+		- `NewToken(name string, pattern string)` - Creates new Token.
+	- Methoods:
+		- `String() string`
+		- `Name() string`
+		- `Value() string`
+		- `ValueInt() (int, error)`
+
 ## RStruct
 Provides interface for custom struct.
-___
 ### Install
 ```sh
-go get github.com/necroin/golibs/rstruct
+go get github.com/necroin/golibs/libs/rstruct
 ```
-___
