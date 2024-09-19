@@ -4,6 +4,8 @@
 - [Metrics](#Metrics) - Provides thread-safe metrics.
 - [FSM](#FSM) - Provides finite state machine logic.
 - [Tokenizer](#Tokenizer) - Parses given text to tokens.
+- [RStruct](#RStruct) - Provides interface for custom struct.
+
 ## CSV
 Reads csv files uses tags.
 ### Install
@@ -274,6 +276,7 @@ func main() {
 	registry.Register(histogramVector)
 
 	http.Handle("/metrics", registry.Handler())
+	http.Handle("/metrics/json", registry.JsonHandler())
 	http.ListenAndServe("localhost:3301", nil)
 }
 ```
@@ -327,3 +330,53 @@ Provides interface for custom struct.
 ```sh
 go get github.com/necroin/golibs/libs/rstruct
 ```
+Types:
+- `RTField` - Describes the component of the field type.
+	- Functions:
+		- `NewRTField(name string, defaultValue any)` - Creates new Reflect Type Field.
+	- Methoods:
+		- `Name() string` - Returns the field name.
+		- `Tags() map[string]string` - Returns a (name) - (value) tag table.
+		- `SetTag(name string, value string) *RTField` - Sets the tag value by name.
+		- `RemoveTag(name string)` - Deletes a tag by name.
+		- `GetTag(name string) (string, bool)` - Gets the tag value by name.
+		- `IsStruct() bool` - Checks RTStruct is RTStruct.
+		- `AsStruct() *RTStruct` - Casts RTField to RTStruct.
+- `RVField` - Describes the component of the field value.
+	- Methoods:
+		- `Set(value any)` - Sets the value of the field.
+		- `Get() any` - Gets the value of the field.
+		- `Type() *RTField` - Returns the field type.
+		- `String() string` - Returns the string view of the field.
+		- `ToJson() ([]byte, error)` - Returns the json view of the field.
+		- `IsNil() bool` - Checks the field for nil.
+		- `Kind() reflect.Kind` - Returns the kind of field.
+		- `IsPointer() bool` - Checks the field for a pointer.
+		- `IsInterface() bool` - Checks the field for the interface.
+		- `IsStruct() bool` - Checks the field for structure.
+		- `IsSlice() bool` - Checks the field for a slice.
+		- `IsMap() bool` - Checks the field for the map.
+		- `AsStruct() *RVStruct` - Casts RVField to RVStruct.
+- `RTStruct` - Describes the component of the structure type.
+	- Functions:
+		- `NewStruct()` - Creates new Reflect Type Structure.
+	- Methoods:
+		- `New() *RVStruct` - Creates a new value for the structure.
+		- `AddField(field *RTField) error` - Adds a new field.
+		- `AddFields(fields ...*RTField) error` - Adds new fields.
+		- `NumField() int` - Returns the number of fields.
+		- `FieldByIndex(index int) *RTField` - Returns the field by index.
+		- `FieldByName(name string) *RTField` - Returns a field by name.
+		- `Extend(extendOptions ...ExtendOption) error` - Extends the structure using fields from another structure.
+		- `String() string` - Returns the string view of the structure.
+		- `SortedString() string` - Returns the string view of the structure with sorted fields.
+- `RVStruct` - Describes the component of the structure value.
+	- Methoods:
+		- `FieldByIndex(index int) *RVField` - Returns the field by index.
+		- `FieldByName(name string) *RVField` - Returns a field by name.
+		- `FieldsListByTag(tag string) []*RVField` - Returns a list of fields with the specified tag.
+		- `FieldsMapByTag(tag string) map[string]*RVField` - Returns a map of fields with the specified tag, where the key is the tag value.
+		- `Type() *RTStruct` - Returns the field type.
+		- `String() string` - Returns the string view of the structure.
+		- `ToMap(tag string) map[string]any` - Returns the (field name) - (value) table.
+		- `ToJson(tag string)` - Returns the json view of the structure.
