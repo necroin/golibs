@@ -194,14 +194,14 @@ func (histogramVector *HistogramVector) Write(writer io.Writer) {
 
 		minusInf := histogram.minusInf
 		count += minusInf.Get()
-		writer.Write([]byte(fmt.Sprintf("%s{%s}{le=\"-Inf\"} %v\n", histogramVector.description.Name, labelsText, minusInf.Get())))
+		writer.Write([]byte(fmt.Sprintf("%s{%s,le=\"-Inf\"} %v\n", histogramVector.description.Name, labelsText, minusInf.Get())))
 
 		for bucketIterator := 0; bucketIterator < int(histogram.buckets.Count); bucketIterator++ {
 			counter, _ := histogram.values.At(uint(bucketIterator))
 			sum += counter.Get()
 			count += counter.Get()
 			writer.Write([]byte(fmt.Sprintf(
-				"%s{%s}{ge=\"%v\",lt=\"%v\"} %v\n",
+				"%s{%s,ge=\"%v\",lt=\"%v\"} %v\n",
 				histogramVector.description.Name,
 				labelsText,
 				bucketIterator*int(histogram.buckets.Range),
@@ -212,9 +212,9 @@ func (histogramVector *HistogramVector) Write(writer io.Writer) {
 
 		plusInf := histogram.plusInf
 		count += plusInf.Get()
-		writer.Write([]byte(fmt.Sprintf("%s{%s}{ge=\"+Inf\"} %v\n", histogramVector.description.Name, labelsText, plusInf.Get())))
-		writer.Write([]byte(fmt.Sprintf("%s_sum %v\n", histogramVector.description.Name, sum)))
-		writer.Write([]byte(fmt.Sprintf("%s_count %v\n", histogramVector.description.Name, count)))
+		writer.Write([]byte(fmt.Sprintf("%s{%s,ge=\"+Inf\"} %v\n", histogramVector.description.Name, labelsText, plusInf.Get())))
+		writer.Write([]byte(fmt.Sprintf("%s_sum{%s} %v\n", histogramVector.description.Name, labelsText, sum)))
+		writer.Write([]byte(fmt.Sprintf("%s_count{%s} %v\n", histogramVector.description.Name, labelsText, count)))
 	})
 }
 
