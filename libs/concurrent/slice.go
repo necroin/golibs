@@ -3,10 +3,12 @@ package concurrent
 import (
 	"fmt"
 	"sync"
+
+	"github.com/necroin/golibs/libs/container"
 )
 
 type ConcurrentSlice[V any] struct {
-	data  []V
+	data  *container.Slice[V]
 	mutex *sync.RWMutex
 }
 
@@ -19,74 +21,45 @@ type ConcurrentSliceIterator[V any] struct {
 // Constructs a new container.
 func NewConcurrentSlice[V any]() *ConcurrentSlice[V] {
 	return &ConcurrentSlice[V]{
-		data:  []V{},
+		data:  container.NewSlice[V](),
 		mutex: &sync.RWMutex{},
 	}
 }
 
 // Inserts element at the specified location in the container.
 func (concurrentSlice *ConcurrentSlice[V]) Insert(index uint, value V) error {
-	size := concurrentSlice.Size()
-
-	if int(index) >= size {
-		return fmt.Errorf("[ConcurrentSlice] [Error] index out of range")
-	}
-
 	concurrentSlice.mutex.Lock()
 	defer concurrentSlice.mutex.Unlock()
-
-	concurrentSlice.data[index] = value
-
-	return nil
+	return concurrentSlice.data.Insert(index, value)
 }
 
 // Appends the given elements value to the end of the container.
 func (concurrentSlice *ConcurrentSlice[V]) Append(values ...V) {
 	concurrentSlice.mutex.Lock()
 	defer concurrentSlice.mutex.Unlock()
-	concurrentSlice.data = append(concurrentSlice.data, values...)
+	concurrentSlice.data.Append(values...)
 }
 
 // Returns the element at specified location index, with bounds checking.
 // If index is not within the range of the container, an error is returned.
 func (concurrentSlice *ConcurrentSlice[V]) At(index uint) (V, error) {
-	size := concurrentSlice.Size()
-
-	if int(index) >= size {
-		return *new(V), fmt.Errorf("[ConcurrentSlice] [Error] index out of range")
-	}
-
 	concurrentSlice.mutex.RLock()
 	defer concurrentSlice.mutex.RUnlock()
-
-	return concurrentSlice.data[index], nil
+	return concurrentSlice.data.At(index)
 }
 
 // Erases the specified element from the container.
 func (concurrentSlice *ConcurrentSlice[V]) Erase(index uint) error {
-	size := concurrentSlice.Size()
-
-	if int(index) >= size {
-		return fmt.Errorf("[ConcurrentSlice] [Error] index out of range")
-	}
-
 	concurrentSlice.mutex.Lock()
 	defer concurrentSlice.mutex.Unlock()
-
-	if int(index) == size-1 {
-		concurrentSlice.data = concurrentSlice.data[0:index]
-	} else {
-		concurrentSlice.data = append(concurrentSlice.data[0:index], concurrentSlice.data[index+1:size]...)
-	}
-
-	return nil
+	return concurrentSlice.data.Erase(index)
 }
 
 // Returns the number of elements in the container.
 func (concurrentSlice *ConcurrentSlice[V]) Size() int {
 	concurrentSlice.mutex.RLock()
 	defer concurrentSlice.mutex.RUnlock()
-	return len(concurrentSlice.data)
+	return concurrentSlice.data.Size()
 }
 
 // Checks if the container has no elements.
@@ -97,28 +70,26 @@ func (concurrentSlice *ConcurrentSlice[V]) IsEmpty() bool {
 // Returns the first element in the container.
 // Calling front on an empty container causes undefined behavior.
 func (concurrentSlice *ConcurrentSlice[V]) Front() V {
-	if concurrentSlice.Size() == 0 {
-		return *new(V)
-	}
-
 	concurrentSlice.mutex.RLock()
 	defer concurrentSlice.mutex.RUnlock()
-
-	return concurrentSlice.data[0]
+	return concurrentSlice.data.Front()
 }
 
 // Returns the last element in the container.
 // Calling back on an empty container causes undefined behavior.
 func (concurrentSlice *ConcurrentSlice[V]) Back() V {
-	size := concurrentSlice.Size()
-	if size == 0 {
-		return *new(V)
-	}
-
 	concurrentSlice.mutex.RLock()
 	defer concurrentSlice.mutex.RUnlock()
+	return concurrentSlice.data.Back()
+}
 
-	return concurrentSlice.data[size-1]
+// Returns the element at specified location index, with bounds checking.
+// Erases the specified element from the container.
+// If index is not within the range of the container, an error is returned.
+func (concurrentSlice *ConcurrentSlice[V]) PopAt(index uint) (V, error) {
+	concurrentSlice.mutex.RLock()
+	defer concurrentSlice.mutex.RUnlock()
+	return concurrentSlice.data.PopAt(index)
 }
 
 // Returns an iterator to the first element of the container.
