@@ -18,6 +18,10 @@ func (rtf *RTField) Name() string {
 	return rtf.name
 }
 
+func (rtf *RTField) DefaultValue() any {
+	return rtf.defaultValue
+}
+
 func (rtf *RTField) Tags() map[string]string {
 	return rtf.tags
 }

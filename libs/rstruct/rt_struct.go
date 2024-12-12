@@ -111,6 +111,18 @@ func (rts *RTStruct) AddFields(fields ...*RTField) error {
 	return nil
 }
 
+func (rts *RTStruct) SetField(field *RTField) error {
+	rtsField, ok := rts.fieldsByName[field.name]
+	if !ok {
+		return rts.AddField(field)
+	}
+
+	rtsField.defaultValue = field.defaultValue
+	rtsField.tags = map[string]string{}
+
+	return nil
+}
+
 func (rts *RTStruct) NumField() int {
 	return len(rts.fields)
 }
