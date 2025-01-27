@@ -55,6 +55,18 @@ func (rvs *RVStruct) Type() *RTStruct {
 	return rvs.rtStruct
 }
 
+func (rvs *RVStruct) IsNil() bool {
+	for _, field := range rvs.fields {
+		if field.IsStruct() && !field.AsStruct().IsNil() {
+			return false
+		}
+		if !field.IsNil() {
+			return false
+		}
+	}
+	return true
+}
+
 func (rvs *RVStruct) String() string {
 	return fmt.Sprintf("%v", rvs.fieldsByName)
 }
