@@ -46,9 +46,7 @@ func NewConverter() *Converter {
 	}))
 
 	protobufParser.AddRule(parser.NewRule("VALUE", "QUOTE QUOTE", func(tokens []parser.Token[TokenData]) TokenData {
-		return TokenData{
-			value: "",
-		}
+		return TokenData{value: ""}
 	}))
 
 	protobufParser.AddRule(parser.NewRule("VALUE", "QUOTE VALUE QUOTE", func(tokens []parser.Token[TokenData]) TokenData {
