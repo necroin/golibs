@@ -14,9 +14,8 @@ type GaugeOpts struct {
 }
 
 type Gauge struct {
-	description    *Description
-	value          *concurrent.AtomicNumber[float64]
-	onWriteHandler func(gauge *Gauge)
+	description *Description
+	value       *concurrent.AtomicNumber[float64]
 }
 
 func NewGauge(opts GaugeOpts) *Gauge {
@@ -59,9 +58,6 @@ func (gauge *Gauge) Description() *Description {
 }
 
 func (gauge *Gauge) Write(writer io.Writer) {
-	if gauge.onWriteHandler != nil {
-		gauge.onWriteHandler(gauge)
-	}
 	writer.Write([]byte(fmt.Sprintf("%s %v\n", gauge.description.Name, gauge.value.Get())))
 }
 
@@ -74,10 +70,6 @@ func (gauge *Gauge) JsonData() any {
 
 func (gauge *Gauge) Reset() {
 	gauge.Set(0)
-}
-
-func (gauge *Gauge) OnWrite(handler func(gauge *Gauge)) {
-	gauge.onWriteHandler = handler
 }
 
 type GaugeVector struct {
