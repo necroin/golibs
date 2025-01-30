@@ -67,6 +67,6 @@ func (registry *Registry) JsonHandler() JsonHandler {
 	return JsonHandler{registry: registry}
 }
 
-func (registry *Registry) OnServe(handlers ...func()) {
-	registry.onServeHandlers = append(registry.onServeHandlers, handlers...)
+func (registry *Registry) SetOnServe(handlers ...func()) {
+	registry.onServeHandlers = handlers
 }
