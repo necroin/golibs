@@ -76,6 +76,22 @@ func (concurrentMap *ConcurrentMap[K, V]) Values() []V {
 	return concurrentMap.data.Values()
 }
 
+// Adds a key/value pair to the container if the key does not already exist.
+// Returns the new value, or the existing value if the key already exists.
+func (concurrentMap *ConcurrentMap[K, V]) GetOrAddByFunc(key K, valueFactory func(key K) V) (V, bool) {
+	concurrentMap.mutex.RLock()
+	defer concurrentMap.mutex.RUnlock()
+	return concurrentMap.data.GetOrAddByFunc(key, valueFactory)
+}
+
+// Adds a key/value pair to the container if the key does not already exist.
+// Returns the new value, or the existing value if the key already exists.
+func (concurrentMap *ConcurrentMap[K, V]) GetOrAdd(key K, value V) (V, bool) {
+	concurrentMap.mutex.RLock()
+	defer concurrentMap.mutex.RUnlock()
+	return concurrentMap.data.GetOrAdd(key, value)
+}
+
 func (concurrentMap *ConcurrentMap[K, V]) String() string {
 	concurrentMap.mutex.RLock()
 	defer concurrentMap.mutex.RUnlock()

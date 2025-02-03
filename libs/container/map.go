@@ -72,6 +72,23 @@ func (container *Map[K, V]) Values() []V {
 	return result
 }
 
+// Adds a key/value pair to the container if the key does not already exist.
+// Returns the new value, or the existing value if the key already exists.
+func (container *Map[K, V]) GetOrAddByFunc(key K, valueFactory func(key K) V) (V, bool) {
+	result, ok := container.data[key]
+	if !ok {
+		result = valueFactory(key)
+		container.data[key] = result
+	}
+	return result, ok
+}
+
+// Adds a key/value pair to the container if the key does not already exist.
+// Returns the new value, or the existing value if the key already exists.
+func (container *Map[K, V]) GetOrAdd(key K, value V) (V, bool) {
+	return container.GetOrAddByFunc(key, func(key K) V { return value })
+}
+
 func (container *Map[K, V]) String() string {
 	return fmt.Sprintf("(len = %d) %v", container.Size(), container.data)
 }
