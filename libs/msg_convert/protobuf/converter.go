@@ -23,8 +23,6 @@ type Converter struct {
 }
 
 func NewConverter() *Converter {
-	decoder := &Converter{}
-
 	protobufTokenizer := tokenizer.NewTokenizer(
 		tokenizer.NewToken("WORD", `[a-zA-Z_0-9][a-zA-Z0-9_\-]*`),
 		tokenizer.NewToken("QUOTE", `\"`),
@@ -32,10 +30,12 @@ func NewConverter() *Converter {
 		tokenizer.NewToken("OBJECT_CLOSE_BRACKET", `\>`),
 		tokenizer.NewToken("COLON", `\:`),
 	)
-	decoder.tokenizer = protobufTokenizer
-
 	protobufParser := parser.NewParser[TokenData]()
-	decoder.parser = protobufParser
+
+	converter := &Converter{
+		tokenizer: protobufTokenizer,
+		parser:    protobufParser,
+	}
 
 	protobufParser.AddRule(parser.NewRule("VALUE", "WORD", func(tokens []parser.Token[TokenData]) TokenData {
 		return tokens[0].Value()
@@ -104,7 +104,7 @@ func NewConverter() *Converter {
 		return listToken
 	}))
 
-	return decoder
+	return converter
 }
 
 func (converter *Converter) ToJson(data []byte, out io.Writer) error {
