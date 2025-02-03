@@ -11,7 +11,7 @@ type Handler struct {
 }
 
 func (handler Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	for _, onServeHandler := range handler.registry.onServeHandlers {
+	for _, onServeHandler := range handler.registry.onCollectandlers {
 		onServeHandler()
 	}
 
@@ -32,7 +32,7 @@ type JsonHandler struct {
 }
 
 func (handler JsonHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	for _, onServeHandler := range handler.registry.onServeHandlers {
+	for _, onServeHandler := range handler.registry.onCollectandlers {
 		onServeHandler()
 	}
 
@@ -44,14 +44,14 @@ func (handler JsonHandler) ServeHTTP(writer http.ResponseWriter, request *http.R
 }
 
 type Registry struct {
-	metrics         []Metric
-	onServeHandlers []func()
+	metrics          []Metric
+	onCollectandlers []func()
 }
 
 func NewRegistry() *Registry {
 	return &Registry{
-		metrics:         []Metric{},
-		onServeHandlers: []func(){},
+		metrics:          []Metric{},
+		onCollectandlers: []func(){},
 	}
 }
 
@@ -67,6 +67,6 @@ func (registry *Registry) JsonHandler() JsonHandler {
 	return JsonHandler{registry: registry}
 }
 
-func (registry *Registry) SetOnServe(handlers ...func()) {
-	registry.onServeHandlers = handlers
+func (registry *Registry) SetOnCollect(handlers ...func()) {
+	registry.onCollectandlers = handlers
 }
