@@ -21,88 +21,88 @@ func NewSlice[V any]() *Slice[V] {
 }
 
 // Inserts element at the specified location in the container.
-func (slice *Slice[V]) Insert(index uint, value V) error {
-	size := slice.Size()
+func (container *Slice[V]) Insert(index uint, value V) error {
+	size := container.Size()
 	if int(index) >= size {
 		return fmt.Errorf("index out of range")
 	}
 
-	slice.data[index] = value
+	container.data[index] = value
 	return nil
 }
 
 // Appends the given elements value to the end of the container.
-func (slice *Slice[V]) Append(values ...V) {
-	slice.data = append(slice.data, values...)
+func (container *Slice[V]) Append(values ...V) {
+	container.data = append(container.data, values...)
 }
 
 // Returns the element at specified location index, with bounds checking.
 // If index is not within the range of the container, an error is returned.
-func (slice *Slice[V]) At(index uint) (V, error) {
-	size := slice.Size()
+func (container *Slice[V]) At(index uint) (V, error) {
+	size := container.Size()
 	if int(index) >= size {
 		return *new(V), fmt.Errorf("index out of range")
 	}
 
-	return slice.data[index], nil
+	return container.data[index], nil
 }
 
 // Erases the specified element from the container.
-func (slice *Slice[V]) Erase(index uint) error {
-	size := slice.Size()
+func (container *Slice[V]) Erase(index uint) error {
+	size := container.Size()
 
 	if int(index) >= size {
 		return fmt.Errorf("index out of range")
 	}
 
 	if int(index) == size-1 {
-		slice.data = slice.data[0:index]
+		container.data = container.data[0:index]
 	} else {
-		slice.data = append(slice.data[0:index], slice.data[index+1:size]...)
+		container.data = append(container.data[0:index], container.data[index+1:size]...)
 	}
 
 	return nil
 }
 
 // Returns the number of elements in the container.
-func (slice *Slice[V]) Size() int {
-	return len(slice.data)
+func (container *Slice[V]) Size() int {
+	return len(container.data)
 }
 
 // Checks if the container has no elements.
-func (slice *Slice[V]) IsEmpty() bool {
-	return slice.Size() == 0
+func (container *Slice[V]) IsEmpty() bool {
+	return container.Size() == 0
 }
 
 // Returns the first element in the container.
 // Calling front on an empty container causes undefined behavior.
-func (slice *Slice[V]) Front() V {
-	if slice.Size() == 0 {
+func (container *Slice[V]) Front() V {
+	if container.Size() == 0 {
 		return *new(V)
 	}
-	return slice.data[0]
+	return container.data[0]
 }
 
 // Returns the last element in the container.
 // Calling back on an empty container causes undefined behavior.
-func (slice *Slice[V]) Back() V {
-	size := slice.Size()
+func (container *Slice[V]) Back() V {
+	size := container.Size()
 	if size == 0 {
 		return *new(V)
 	}
-	return slice.data[size-1]
+	return container.data[size-1]
 }
 
 // Returns the element at specified location index, with bounds checking.
 // Erases the specified element from the container.
 // If index is not within the range of the container, an error is returned.
-func (slice *Slice[V]) PopAt(index uint) (V, error) {
-	result, err := slice.At(index)
+func (container *Slice[V]) PopAt(index uint) (V, error) {
+	result, err := container.At(index)
 	if err != nil {
 		return result, err
 	}
 
-	if err := slice.Erase(index); err != nil {
+	if err := container.Erase(index); err != nil {
 		return result, err
 	}
 
@@ -110,23 +110,23 @@ func (slice *Slice[V]) PopAt(index uint) (V, error) {
 }
 
 // Returns an iterator to the first element of the container.
-func (slice *Slice[V]) Begin() *SliceIterator[V] {
+func (container *Slice[V]) Begin() *SliceIterator[V] {
 	return &SliceIterator[V]{
-		data:  slice,
+		data:  container,
 		index: 0,
 	}
 }
 
 // Returns an iterator to the element following the last element of the container.
-func (slice *Slice[V]) End() *SliceIterator[V] {
+func (container *Slice[V]) End() *SliceIterator[V] {
 	return &SliceIterator[V]{
-		data:  slice,
-		index: uint(slice.Size()),
+		data:  container,
+		index: uint(container.Size()),
 	}
 }
 
-func (slice *Slice[V]) String() string {
-	return fmt.Sprintf("(len = %d) %v", slice.Size(), slice.data)
+func (container *Slice[V]) String() string {
+	return fmt.Sprintf("(len = %d) %v", container.Size(), container.data)
 }
 
 func (iterator *SliceIterator[V]) Next() *SliceIterator[V] {
