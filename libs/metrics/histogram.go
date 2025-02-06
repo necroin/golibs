@@ -33,6 +33,8 @@ type Histogram struct {
 	minusInf    *Counter
 	plusInf     *Counter
 	values      *concurrent.ConcurrentSlice[*Counter]
+	sum         *Counter
+	count       *Counter
 }
 
 func NewHistogram(opts HistogramOpts) *Histogram {
@@ -46,6 +48,8 @@ func NewHistogram(opts HistogramOpts) *Histogram {
 		minusInf: NewCounter(CounterOpts{}),
 		plusInf:  NewCounter(CounterOpts{}),
 		values:   concurrent.NewConcurrentSlice[*Counter](),
+		sum:      NewCounter(CounterOpts{}),
+		count:    NewCounter(CounterOpts{}),
 	}
 
 	for i := 0; i < int(histogram.buckets.Count); i++ {
@@ -70,6 +74,9 @@ func (histogram *Histogram) divAllBuckets(value float64) {
 }
 
 func (histogram *Histogram) Observe(value float64) {
+	histogram.sum.Add(value)
+	histogram.count.Inc()
+
 	divValue := float64(2)
 	offset := value - float64(histogram.buckets.Start)
 
@@ -102,16 +109,10 @@ func (histogram *Histogram) Observe(value float64) {
 }
 
 func (histogram *Histogram) Write(writer io.Writer) {
-	sum := float64(0)
-	count := float64(0)
-	minusInf := histogram.minusInf
-	count += minusInf.Get()
-	writer.Write([]byte(fmt.Sprintf("%s{le=\"-Inf\"} %v\n", histogram.description.Name, minusInf.Get())))
+	writer.Write([]byte(fmt.Sprintf("%s{le=\"-Inf\"} %v\n", histogram.description.Name, histogram.minusInf.Get())))
 
 	for bucketIterator := 0; bucketIterator < int(histogram.buckets.Count); bucketIterator++ {
 		counter, _ := histogram.values.At(uint(bucketIterator))
-		sum += counter.Get()
-		count += counter.Get()
 		writer.Write([]byte(fmt.Sprintf(
 			"%s{ge=\"%v\",lt=\"%v\"} %v\n",
 			histogram.description.Name,
@@ -121,11 +122,9 @@ func (histogram *Histogram) Write(writer io.Writer) {
 		)))
 	}
 
-	plusInf := histogram.plusInf
-	count += plusInf.Get()
-	writer.Write([]byte(fmt.Sprintf("%s{ge=\"+Inf\"} %v\n", histogram.description.Name, plusInf.Get())))
-	writer.Write([]byte(fmt.Sprintf("%s_sum %v\n", histogram.description.Name, sum)))
-	writer.Write([]byte(fmt.Sprintf("%s_count %v\n", histogram.description.Name, count)))
+	writer.Write([]byte(fmt.Sprintf("%s{ge=\"+Inf\"} %v\n", histogram.description.Name, histogram.plusInf.Get())))
+	writer.Write([]byte(fmt.Sprintf("%s_sum %v\n", histogram.description.Name, histogram.sum.Get())))
+	writer.Write([]byte(fmt.Sprintf("%s_count %v\n", histogram.description.Name, histogram.count.Get())))
 }
 
 func (histogram *Histogram) JsonData() any {
@@ -189,17 +188,10 @@ func (histogramVector *HistogramVector) Write(writer io.Writer) {
 		}
 		labelsText := strings.Join(labels, ",")
 
-		sum := float64(0)
-		count := float64(0)
-
-		minusInf := histogram.minusInf
-		count += minusInf.Get()
-		writer.Write([]byte(fmt.Sprintf("%s{%s,le=\"-Inf\"} %v\n", histogramVector.description.Name, labelsText, minusInf.Get())))
+		writer.Write([]byte(fmt.Sprintf("%s{%s,le=\"-Inf\"} %v\n", histogramVector.description.Name, labelsText, histogram.minusInf.Get())))
 
 		for bucketIterator := 0; bucketIterator < int(histogram.buckets.Count); bucketIterator++ {
 			counter, _ := histogram.values.At(uint(bucketIterator))
-			sum += counter.Get()
-			count += counter.Get()
 			writer.Write([]byte(fmt.Sprintf(
 				"%s{%s,ge=\"%v\",lt=\"%v\"} %v\n",
 				histogramVector.description.Name,
@@ -210,11 +202,9 @@ func (histogramVector *HistogramVector) Write(writer io.Writer) {
 			)))
 		}
 
-		plusInf := histogram.plusInf
-		count += plusInf.Get()
-		writer.Write([]byte(fmt.Sprintf("%s{%s,ge=\"+Inf\"} %v\n", histogramVector.description.Name, labelsText, plusInf.Get())))
-		writer.Write([]byte(fmt.Sprintf("%s_sum{%s} %v\n", histogramVector.description.Name, labelsText, sum)))
-		writer.Write([]byte(fmt.Sprintf("%s_count{%s} %v\n", histogramVector.description.Name, labelsText, count)))
+		writer.Write([]byte(fmt.Sprintf("%s{%s,ge=\"+Inf\"} %v\n", histogramVector.description.Name, labelsText, histogram.plusInf.Get())))
+		writer.Write([]byte(fmt.Sprintf("%s_sum{%s} %v\n", histogramVector.description.Name, labelsText, histogram.sum.Get())))
+		writer.Write([]byte(fmt.Sprintf("%s_count{%s} %v\n", histogramVector.description.Name, labelsText, histogram.count.Get())))
 	})
 }
 
