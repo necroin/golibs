@@ -24,3 +24,11 @@ func (atomic *AtomicValue[T]) Set(value T) {
 	defer atomic.mutex.Unlock()
 	atomic.value = value
 }
+
+func (atomic *AtomicValue[T]) SetWithCondition(value T, condition func(oldValue T, newValue T) bool) {
+	atomic.mutex.Lock()
+	defer atomic.mutex.Unlock()
+	if condition(atomic.value, value) {
+		atomic.value = value
+	}
+}

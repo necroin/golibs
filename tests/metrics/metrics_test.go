@@ -1,6 +1,8 @@
 package metrics_tests
 
 import (
+	"fmt"
+	"math"
 	"math/rand"
 	"net/http"
 	"testing"
@@ -55,7 +57,9 @@ func TestMetrics(t *testing.T) {
 	SimMetricsWork()
 
 	go http.ListenAndServe("localhost:3301", nil)
-	time.Sleep(20 * time.Second)
+	time.Sleep(5 * time.Second)
+	fmt.Println(histogram.Summary().String())
+	fmt.Println(histogram.String())
 }
 
 func SimMetricsWork() {
@@ -73,13 +77,13 @@ func SimMetricsWork() {
 			labelVector.WithLabelValues("test11", "test12").Set(RandomString(10))
 			labelVector.WithLabelValues("test21", "test22").Set(RandomString(10))
 
-			histogram.Observe(rand.Float64() * 100)
-			histogram.Observe(1000)
+			// histogram.Observe(math.Abs(rand.NormFloat64()) * 100)
+			histogram.Observe(50)
 
-			histogramVector.WithLabelValues("test11", "test12").Observe(rand.Float64() * 100)
-			histogramVector.WithLabelValues("test21", "test22").Observe(rand.Float64() * 100)
+			histogramVector.WithLabelValues("test11", "test12").Observe(math.Abs(rand.Float64()) * 100)
+			histogramVector.WithLabelValues("test21", "test22").Observe(math.Abs(rand.Float64()) * 100)
 
-			time.Sleep(1 * time.Second)
+			// time.Sleep(1 * time.Millisecond)
 		}
 	}()
 }

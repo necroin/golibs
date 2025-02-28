@@ -1,9 +1,11 @@
 package metrics
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"strings"
+	"text/template"
 
 	"github.com/necroin/golibs/libs/concurrent"
 )
@@ -13,6 +15,20 @@ type HistogramJsonDataItem struct {
 	MinusInf float64   `json:"minus_inf"`
 	PlusInf  float64   `json:"plus_inf"`
 	Values   []float64 `json:"values"`
+}
+
+type HistogramBucketView struct {
+	Head  string
+	Count string
+	Value string
+}
+
+type HistogramSummary struct {
+	Count   int64
+	Sum     float64
+	Min     float64
+	Max     float64
+	Average float64
 }
 
 type Buckets struct {
@@ -35,6 +51,8 @@ type Histogram struct {
 	values      *concurrent.ConcurrentSlice[*Counter]
 	sum         *Counter
 	count       *Counter
+	min         *concurrent.AtomicValue[float64]
+	max         *concurrent.AtomicValue[float64]
 }
 
 func NewHistogram(opts HistogramOpts) *Histogram {
@@ -50,6 +68,8 @@ func NewHistogram(opts HistogramOpts) *Histogram {
 		values:   concurrent.NewConcurrentSlice[*Counter](),
 		sum:      NewCounter(CounterOpts{}),
 		count:    NewCounter(CounterOpts{}),
+		min:      concurrent.NewAtomicValue[float64](),
+		max:      concurrent.NewAtomicValue[float64](),
 	}
 
 	for i := 0; i < int(histogram.buckets.Count); i++ {
@@ -76,6 +96,9 @@ func (histogram *Histogram) divAllBuckets(value float64) {
 func (histogram *Histogram) Observe(value float64) {
 	histogram.sum.Add(value)
 	histogram.count.Inc()
+
+	histogram.min.SetWithCondition(value, func(oldValue, newValue float64) bool { return newValue < oldValue })
+	histogram.max.SetWithCondition(value, func(oldValue, newValue float64) bool { return newValue > oldValue })
 
 	divValue := float64(2)
 	offset := value - float64(histogram.buckets.Start)
@@ -153,6 +176,73 @@ func (histogram *Histogram) Reset() {
 		counter, _ := histogram.values.At(uint(bucketIterator))
 		counter.Reset()
 	}
+}
+
+func (histogram *Histogram) String() string {
+	result := ""
+
+	bucketsViews := []*HistogramBucketView{}
+	maxBucketViewHeadLen := 0
+	maxBucketViewCountLen := 0
+
+	for bucketIterator := 0; bucketIterator < int(histogram.buckets.Count); bucketIterator++ {
+		bucketEnd := histogram.buckets.Range * uint(bucketIterator+1)
+		counter, _ := histogram.values.At(uint(bucketIterator))
+		percent := int(counter.Get() / histogram.count.Get() * 100)
+		bucketView := &HistogramBucketView{
+			Head:  fmt.Sprintf("%v", bucketEnd),
+			Count: fmt.Sprintf("[%v]", counter.Get()),
+			Value: strings.Repeat("▪", percent/2),
+		}
+		if len(bucketView.Head) > maxBucketViewHeadLen {
+			maxBucketViewHeadLen = len(bucketView.Head)
+		}
+		if len(bucketView.Count) > maxBucketViewCountLen {
+			maxBucketViewCountLen = len(bucketView.Count)
+		}
+		bucketsViews = append(bucketsViews, bucketView)
+	}
+
+	for _, bucketView := range bucketsViews {
+		result += fmt.Sprintf(
+			"%s%s %s%s | %s\n",
+			bucketView.Head,
+			strings.Repeat(" ", maxBucketViewHeadLen-len(bucketView.Head)),
+			bucketView.Count,
+			strings.Repeat(" ", maxBucketViewCountLen-len(bucketView.Count)),
+			bucketView.Value,
+		)
+	}
+
+	return result
+}
+
+func (histogram *Histogram) Summary() HistogramSummary {
+	count := histogram.count.Get()
+	sum := histogram.sum.Get()
+	min := histogram.min.Get()
+	max := histogram.max.Get()
+
+	return HistogramSummary{
+		Count:   int64(count),
+		Sum:     sum,
+		Min:     min,
+		Max:     max,
+		Average: sum / count,
+	}
+}
+
+func (summary HistogramSummary) String() string {
+	buffer := &bytes.Buffer{}
+	summaryTemplate, err := template.New("HistogramSummary").Parse("Count: {{.Count}}\nSum: {{.Sum}}\nMin: {{.Min}}\nMax: {{.Max}}\nAverage: {{.Average}}\n")
+	if err != nil {
+		panic(err)
+	}
+
+	if err := summaryTemplate.Execute(buffer, summary); err != nil {
+		panic(err)
+	}
+	return buffer.String()
 }
 
 type HistogramVector struct {
