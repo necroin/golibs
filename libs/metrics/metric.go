@@ -65,3 +65,10 @@ func (metricVector *MetricVector[T]) WithLabelValues(labels ...string) T {
 
 	return result
 }
+
+func (metricVector *MetricVector[T]) IterateOverLabelValues(handler func(metric T, values ...string)) {
+	metricVector.data.Iterate(func(key string, value T) {
+		keyLabels := strings.Split(key, ",")
+		handler(value, keyLabels...)
+	})
+}
