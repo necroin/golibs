@@ -1,6 +1,10 @@
 package utils
 
-import "strings"
+import (
+	"fmt"
+	"os"
+	"strings"
+)
 
 func PointerOf[T any](value T) *T {
 	return &value
@@ -33,4 +37,18 @@ func MapSlice[K comparable, V any](slice []V, keyHandler func(element V) K) map[
 		result[key] = append(result[key], element)
 	}
 	return result
+}
+
+func SaveToFile(filename string, data []byte) error {
+	file, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("failed open file: %w", err)
+	}
+	defer file.Close()
+
+	if _, err := file.Write(data); err != nil {
+		return fmt.Errorf("failed write data to file: %w", err)
+	}
+
+	return nil
 }
