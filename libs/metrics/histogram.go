@@ -8,6 +8,7 @@ import (
 	"text/template"
 
 	"github.com/necroin/golibs/libs/concurrent"
+	"github.com/necroin/golibs/utils"
 )
 
 type HistogramJsonDataItem struct {
@@ -188,7 +189,7 @@ func (histogram *Histogram) String() string {
 	for bucketIterator := 0; bucketIterator < int(histogram.buckets.Count); bucketIterator++ {
 		bucketEnd := histogram.buckets.Range * uint(bucketIterator+1)
 		counter, _ := histogram.values.At(uint(bucketIterator))
-		percent := int(counter.Get() / histogram.count.Get() * 100)
+		percent := int(utils.SafeDivide(counter.Get(), histogram.count.Get()) * 100)
 		bucketView := &HistogramBucketView{
 			Head:  fmt.Sprintf("%v", bucketEnd),
 			Count: fmt.Sprintf("[%v]", counter.Get()),
@@ -228,7 +229,7 @@ func (histogram *Histogram) Summary() HistogramSummary {
 		Sum:     sum,
 		Min:     min,
 		Max:     max,
-		Average: sum / count,
+		Average: utils.SafeDivide(sum, count),
 	}
 }
 

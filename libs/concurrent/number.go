@@ -2,18 +2,16 @@ package concurrent
 
 import (
 	"sync"
+
+	"github.com/necroin/golibs/utils"
 )
 
-type Number interface {
-	float32 | float64 | int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64
-}
-
-type AtomicNumber[T Number] struct {
+type AtomicNumber[T utils.Number] struct {
 	value T
 	mutex *sync.RWMutex
 }
 
-func NewAtomicNumber[T Number]() *AtomicNumber[T] {
+func NewAtomicNumber[T utils.Number]() *AtomicNumber[T] {
 	return &AtomicNumber[T]{
 		mutex: &sync.RWMutex{},
 	}

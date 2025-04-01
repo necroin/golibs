@@ -40,28 +40,6 @@ var (
 	)
 )
 
-func TestMetrics(t *testing.T) {
-	registry := metrics.NewRegistry()
-	registry.Register(counter)
-	registry.Register(counterVector)
-	registry.Register(gauge)
-	registry.Register(gaugeVector)
-	registry.Register(label)
-	registry.Register(labelVector)
-	registry.Register(histogram)
-	registry.Register(histogramVector)
-
-	http.Handle("/metrics", registry.Handler())
-	http.Handle("/metrics/json", registry.JsonHandler())
-
-	SimMetricsWork()
-
-	go http.ListenAndServe("localhost:3301", nil)
-	time.Sleep(5 * time.Second)
-	fmt.Println(histogram.Summary().String())
-	fmt.Println(histogram.String())
-}
-
 func SimMetricsWork() {
 	go func() {
 		for {
@@ -86,4 +64,39 @@ func SimMetricsWork() {
 			// time.Sleep(1 * time.Millisecond)
 		}
 	}()
+}
+
+func TestMetrics_All(t *testing.T) {
+	registry := metrics.NewRegistry()
+	registry.Register(counter)
+	registry.Register(counterVector)
+	registry.Register(gauge)
+	registry.Register(gaugeVector)
+	registry.Register(label)
+	registry.Register(labelVector)
+	registry.Register(histogram)
+	registry.Register(histogramVector)
+
+	http.Handle("/metrics", registry.Handler())
+	http.Handle("/metrics/json", registry.JsonHandler())
+
+	SimMetricsWork()
+
+	go http.ListenAndServe("localhost:3301", nil)
+	time.Sleep(5 * time.Second)
+	fmt.Println(histogram.Summary().String())
+	fmt.Println(histogram.String())
+}
+
+func TestMetrics_Histogram_Empty(t *testing.T) {
+	registry := metrics.NewRegistry()
+	registry.Register(histogram)
+
+	http.Handle("/metrics", registry.Handler())
+	http.Handle("/metrics/json", registry.JsonHandler())
+
+	go http.ListenAndServe("localhost:3301", nil)
+	time.Sleep(5 * time.Second)
+	fmt.Println(histogram.Summary().String())
+	fmt.Println(histogram.String())
 }
