@@ -3,6 +3,8 @@ package container_graph
 import (
 	"fmt"
 	"slices"
+
+	"github.com/necroin/golibs/utils"
 )
 
 type Node[T any] struct {
@@ -29,6 +31,10 @@ func (node *Node[T]) Value() T {
 
 func (node *Node[T]) Transitions() []*Node[T] {
 	return node.transitions
+}
+
+func (node *Node[T]) TransitionsNames() []string {
+	return utils.MapSlice(node.transitions, func(node *Node[T]) string { return node.name })
 }
 
 func (node *Node[T]) AddTransition(toNode *Node[T]) {
