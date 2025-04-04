@@ -44,8 +44,6 @@ func (container *Graph[T]) GraphvizRender(ctx context.Context, writer io.Writer,
 	}
 	defer graph.Close()
 
-	graph.SetRankDir(cgraph.LRRank)
-
 	cgraphNodes := make(map[string]*cgraph.Node)
 	for _, node := range container.nodes {
 		cgraphNode, err := graph.CreateNodeByName(node.name)

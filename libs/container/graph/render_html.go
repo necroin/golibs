@@ -13,11 +13,37 @@ const htmlTemplate = `
     <title>Graph Visualization</title>
     <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.2/dist/vis-network.min.js"></script>
     <style>
-        #graph { width: 100%; height: 600px; border: 1px solid #ddd; }
+		html,
+        body {
+            padding: 0;
+            offset: 0;
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .vertical-layout {
+            display: flex;
+            flex-grow: 1;
+        }
+
+        .horizontal-layout {
+            display: flex;
+            flex-grow: 1;
+        }
+
+        #graph {
+            flex-grow: 1;
+            border: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
-    <div id="graph"></div>
+    <div class="vertical-layout">
+        <div class="horizontal-layout">
+            <div id="graph"></div>
+        </div>
+    </div>
     <script>
         const nodes = new vis.DataSet([{{range .Nodes}}
             { id: "{{.Name}}", label: "{{.Name}}\n{{.Value}}", shape: "circle" },{{end}}
@@ -30,8 +56,7 @@ const htmlTemplate = `
         const container = document.getElementById("graph");
         const data = { nodes, edges };
         const options = {
-            layout: { hierarchical: { direction: "LR" } },
-            physics: { hierarchicalRepulsion: { nodeDistance: 120 } }
+            physics: { hierarchicalRepulsion: { nodeDistance: 200 } }
 		};
         new vis.Network(container, data, options);
     </script>

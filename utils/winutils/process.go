@@ -54,7 +54,7 @@ func GetAllProcesses() ([]*Process, error) {
 }
 
 func FindProcessByPid(processes []*Process, pid winapi.ProcessId) *Process {
-	processesByParentId := utils.MapSlice[winapi.ProcessId, *Process](processes, func(element *Process) winapi.ProcessId { return element.Pid })
+	processesByParentId := utils.SliceToMultimap[winapi.ProcessId, *Process](processes, func(element *Process) winapi.ProcessId { return element.Pid })
 	pidProcesses := processesByParentId[pid]
 	if len(pidProcesses) == 0 {
 		return nil
@@ -63,6 +63,6 @@ func FindProcessByPid(processes []*Process, pid winapi.ProcessId) *Process {
 }
 
 func FindProcessesByParentPid(processes []*Process, pid winapi.ProcessId) []*Process {
-	processesByParentId := utils.MapSlice[winapi.ProcessId, *Process](processes, func(element *Process) winapi.ProcessId { return element.Ppid })
+	processesByParentId := utils.SliceToMultimap[winapi.ProcessId, *Process](processes, func(element *Process) winapi.ProcessId { return element.Ppid })
 	return processesByParentId[pid]
 }
