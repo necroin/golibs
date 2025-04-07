@@ -11,6 +11,7 @@ type Node[T any] struct {
 	name        string
 	value       T
 	transitions []*Node[T]
+	options     map[string]any
 }
 
 func NewNode[T any](name string, value T) *Node[T] {
@@ -18,6 +19,7 @@ func NewNode[T any](name string, value T) *Node[T] {
 		name:        name,
 		value:       value,
 		transitions: []*Node[T]{},
+		options:     map[string]any{},
 	}
 }
 
@@ -31,6 +33,15 @@ func (node *Node[T]) Value() T {
 
 func (node *Node[T]) Transitions() []*Node[T] {
 	return node.transitions
+}
+
+func (node *Node[T]) Options() map[string]any {
+	return node.options
+}
+
+func (node *Node[T]) SetOption(name string, value any) *Node[T] {
+	node.options[name] = value
+	return node
 }
 
 func (node *Node[T]) TransitionsNames() []string {

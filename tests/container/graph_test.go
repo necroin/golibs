@@ -44,7 +44,7 @@ func TestGraph_Random_Render(t *testing.T) {
 		newNode(),
 	}
 
-	graph := container_graph.New(nodes)
+	graph := container_graph.New(nodes...)
 
 	for range 100 {
 		node := newNode()
@@ -66,26 +66,26 @@ func TestGraph_Random_Render(t *testing.T) {
 
 func TestGraph_Preset_Render(t *testing.T) {
 	nodes := []*container_graph.Node[string]{
-		container_graph.NewNode("Server_1", "Addr 1"),
-		container_graph.NewNode("Server_1-App_1", "Port 1"),
-		container_graph.NewNode("Server_1-App_2", "Port 2"),
-		container_graph.NewNode("Server_1-App_3", "Port 3"),
-		container_graph.NewNode("Server_1-App_4", "Port 4"),
+		container_graph.NewNode("Server_1", "Addr 1").SetOption("group", 1),
+		container_graph.NewNode("Server_1-App_1", "Port 1").SetOption("group", 1),
+		container_graph.NewNode("Server_1-App_2", "Port 2").SetOption("group", 1),
+		container_graph.NewNode("Server_1-App_3", "Port 3").SetOption("group", 1),
+		container_graph.NewNode("Server_1-App_4", "Port 4").SetOption("group", 1),
 
-		container_graph.NewNode("Server_2", "Addr 2"),
-		container_graph.NewNode("Server_2-App_1", "Port 1"),
-		container_graph.NewNode("Server_2-App_2", "Port 2"),
-		container_graph.NewNode("Server_2-App_3", "Port 3"),
-		container_graph.NewNode("Server_2-App_4", "Port 4"),
+		container_graph.NewNode("Server_2", "Addr 2").SetOption("group", 2),
+		container_graph.NewNode("Server_2-App_1", "Port 1").SetOption("group", 2),
+		container_graph.NewNode("Server_2-App_2", "Port 2").SetOption("group", 2),
+		container_graph.NewNode("Server_2-App_3", "Port 3").SetOption("group", 2),
+		container_graph.NewNode("Server_2-App_4", "Port 4").SetOption("group", 2),
 
-		container_graph.NewNode("Server_3", "Addr 2"),
-		container_graph.NewNode("Server_3-App_1", "Port 1"),
-		container_graph.NewNode("Server_3-App_2", "Port 2"),
-		container_graph.NewNode("Server_3-App_3", "Port 3"),
-		container_graph.NewNode("Server_3-App_4", "Port 4"),
+		container_graph.NewNode("Server_3", "Addr 2").SetOption("group", 3),
+		container_graph.NewNode("Server_3-App_1", "Port 1").SetOption("group", 3),
+		container_graph.NewNode("Server_3-App_2", "Port 2").SetOption("group", 3),
+		container_graph.NewNode("Server_3-App_3", "Port 3").SetOption("group", 3),
+		container_graph.NewNode("Server_3-App_4", "Port 4").SetOption("group", 3),
 	}
 
-	graph := container_graph.New(nodes)
+	graph := container_graph.New(nodes...)
 
 	graph.AddTransitionUndirected("Server_1", "Server_1-App_1")
 	graph.AddTransitionUndirected("Server_1", "Server_1-App_2")
@@ -106,4 +106,49 @@ func TestGraph_Preset_Render(t *testing.T) {
 	graph.AddTransition("Server_3", "Server_2")
 
 	AllRender(t, graph)
+}
+
+func TestGraph_Preset_Generate_Render_HTML(t *testing.T) {
+	serversCount := 10
+	appsCount := 50
+
+	servers := []*container_graph.Node[string]{}
+	apps := []*container_graph.Node[string]{}
+
+	for serverId := 0; serverId < serversCount; serverId++ {
+		server := container_graph.NewNode(fmt.Sprintf("Server_%d", serverId), fmt.Sprintf("Addr %d", serverId))
+		server.SetOption("group", serverId)
+		servers = append(servers, server)
+
+		for appId := 0; appId < appsCount; appId++ {
+			app := container_graph.NewNode(fmt.Sprintf("Server_%d_App_%d", serverId, appId), fmt.Sprintf("Port %d", appId))
+			app.SetOption("group", serverId)
+			apps = append(apps, app)
+		}
+	}
+
+	nodes := append(servers, apps...)
+	graph := container_graph.New(nodes...)
+
+	for serverId := 0; serverId < serversCount; serverId++ {
+		for appId := 0; appId < appsCount; appId++ {
+			graph.AddTransition(
+				fmt.Sprintf("Server_%d_App_%d", serverId, appId),
+				fmt.Sprintf("Server_%d", serverId),
+			)
+		}
+	}
+
+	for _, server1 := range servers {
+		for _, server2 := range servers {
+			graph.AddTransitionUndirected(
+				server1.Name(),
+				server2.Name(),
+			)
+		}
+	}
+
+	if err := graph.HtmlRenderToFile("graph.html"); err != nil {
+		t.Log(err)
+	}
 }

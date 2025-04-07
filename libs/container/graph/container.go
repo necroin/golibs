@@ -12,7 +12,7 @@ type Graph[T any] struct {
 	nodeByNames map[string]*Node[T]
 }
 
-func New[T any](nodes []*Node[T]) *Graph[T] {
+func New[T any](nodes ...*Node[T]) *Graph[T] {
 	nodeByNames := map[string]*Node[T]{}
 	for _, node := range nodes {
 		nodeByNames[node.name] = node

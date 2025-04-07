@@ -1,6 +1,7 @@
 package container_graph
 
 import (
+	"fmt"
 	"html/template"
 	"io"
 	"os"
@@ -46,7 +47,7 @@ const htmlTemplate = `
     </div>
     <script>
         const nodes = new vis.DataSet([{{range .Nodes}}
-            { id: "{{.Name}}", label: "{{.Name}}\n{{.Value}}", shape: "circle" },{{end}}
+            {{.Values}},{{end}}
         ]);
         
         const edges = new vis.DataSet([{{range .Edges}}
@@ -56,8 +57,44 @@ const htmlTemplate = `
         const container = document.getElementById("graph");
         const data = { nodes, edges };
         const options = {
-            physics: { hierarchicalRepulsion: { nodeDistance: 200 } }
-		};
+            nodes: {
+                shape: "box",
+                scaling: {
+                    min: 10,
+                    max: 30,
+                },
+                font: {
+                    size: 12,
+                    face: "Tahoma",
+                },
+            },
+            edges: {
+                width: 0.15,
+                color: { inherit: "from" },
+                smooth: {
+                    type: "continuous",
+                },
+            },
+            physics: {
+                solver: "forceAtlas2Based",
+                stabilization: false,
+                barnesHut: {
+                    gravitationalConstant: -80000,
+                    springConstant: 0.01,
+                    springLength: 200,
+                },
+                forceAtlas2Based: {
+                    gravitationalConstant: -2000,
+                    springConstant: 0.1,
+                    springLength: 200,
+                },
+            },
+            interaction: {
+                tooltipDelay: 200,
+                hideEdgesOnDrag: true,
+            },
+
+        };
         new vis.Network(container, data, options);
     </script>
 </body>
@@ -65,22 +102,39 @@ const htmlTemplate = `
 `
 
 func (container *Graph[T]) HtmlRender(writer io.Writer) error {
-	type Edge struct {
+	type NodeData struct {
+		Values map[string]any
+	}
+
+	type EdgeData struct {
 		From, To string
 	}
+
 	type TemplateData struct {
-		Nodes []*Node[T]
-		Edges []Edge
+		Nodes []NodeData
+		Edges []EdgeData
 	}
 
 	data := TemplateData{
-		Nodes: container.nodes,
+		Nodes: []NodeData{},
+		Edges: []EdgeData{},
 	}
 
 	// Собираем все рёбра
 	for _, node := range container.nodes {
+		values := map[string]any{
+			"id":    node.name,
+			"label": fmt.Sprintf("%s\n%v", node.name, node.value),
+		}
+
+		for optionName, optionValue := range node.options {
+			values[optionName] = optionValue
+		}
+
+		data.Nodes = append(data.Nodes, NodeData{Values: values})
+
 		for _, transition := range node.transitions {
-			data.Edges = append(data.Edges, Edge{
+			data.Edges = append(data.Edges, EdgeData{
 				From: node.name,
 				To:   transition.name,
 			})

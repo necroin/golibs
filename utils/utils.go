@@ -74,7 +74,7 @@ func MapValues[K comparable, V any](container map[K]V) []V {
 }
 
 func SaveToFile(filename string, data []byte) error {
-	file, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC, os.ModePerm)
+	file, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("failed open file: %w", err)
 	}
