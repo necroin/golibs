@@ -22,4 +22,5 @@ require (
 	github.com/tetratelabs/wazero v1.8.1 // indirect
 	golang.org/x/image v0.21.0 // indirect
 	golang.org/x/text v0.19.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1
 )

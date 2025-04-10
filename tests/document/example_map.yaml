@@ -1,0 +1,12 @@
+section1:
+  key1: s1k1
+  key2: s1k2
+  section11:
+    key3: s1s11k3
+    key4: s1s11k4
+  section12:
+    key3: s1s12k3
+    key4: s1s12k4
+section2:
+  key1: s2k1
+  key2: s2k2
