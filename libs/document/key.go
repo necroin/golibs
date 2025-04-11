@@ -9,24 +9,16 @@ import (
 )
 
 type Key struct {
-	name  string
-	value any
-}
-
-func (key *Key) Name() string {
-	return key.name
-}
-
-func (key *Key) Value() any {
-	return key.value
+	Name  string
+	Value any
 }
 
 // String returns string representation of value.
 func (key *Key) String() string {
-	if key.value == nil {
+	if key.Value == nil {
 		return ""
 	}
-	return fmt.Sprintf("%s", key.value)
+	return fmt.Sprintf("%s", key.Value)
 }
 
 // Bool returns bool type value.

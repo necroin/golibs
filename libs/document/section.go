@@ -32,7 +32,7 @@ func NewSection(data any) *Section {
 			dataKey := dataIterator.Key().String()
 			dataValue := dataIterator.Value()
 			if dataValue.Interface() == nil {
-				keys[dataKey] = &Key{name: dataKey, value: nil}
+				keys[dataKey] = &Key{Name: dataKey, Value: nil}
 				continue
 			}
 			dataValue = reflect.ValueOf(dataValue.Interface())
@@ -41,7 +41,7 @@ func NewSection(data any) *Section {
 				sectionsByName[dataKey] = subSection
 				continue
 			}
-			keys[dataKey] = &Key{name: dataKey, value: dataValue.Interface()}
+			keys[dataKey] = &Key{Name: dataKey, Value: dataValue.Interface()}
 		}
 	}
 
@@ -50,7 +50,7 @@ func NewSection(data any) *Section {
 			dataKey := formatIndex(index)
 			dataValue := rvData.Index(index)
 			if dataValue.Interface() == nil {
-				keys[dataKey] = &Key{name: dataKey, value: nil}
+				keys[dataKey] = &Key{Name: dataKey, Value: nil}
 				continue
 			}
 			dataValue = reflect.ValueOf(dataValue.Interface())
@@ -59,7 +59,7 @@ func NewSection(data any) *Section {
 				sectionsByName[dataKey] = subSection
 				continue
 			}
-			keys[dataKey] = &Key{name: dataKey, value: dataValue.Interface()}
+			keys[dataKey] = &Key{Name: dataKey, Value: dataValue.Interface()}
 		}
 	}
 
