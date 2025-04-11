@@ -118,6 +118,14 @@ func (section *Section) Key(path string, opts ...SectionOption) (*Key, error) {
 	return result, nil
 }
 
+func (section *Section) SectionsNames() []string {
+	return utils.MapKeys(section.Sections)
+}
+
+func (section *Section) KeysNames() []string {
+	return utils.MapKeys(section.Keys)
+}
+
 func (section *Section) SectionsCount() int {
 	return len(section.Sections)
 }
