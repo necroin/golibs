@@ -10,13 +10,8 @@ type Document struct {
 	Root *Section
 }
 
-func NewDocument[T any](filepath string, container T, newDecoder func(reader io.Reader) Decoder) (*Document, error) {
-	file, err := os.Open(filepath)
-	if err != nil {
-		return nil, fmt.Errorf("failed open file: %w", err)
-	}
-
-	if err := newDecoder(file).Decode(&container); err != nil {
+func NewDocument[T any](reader io.Reader, container T, newDecoder func(reader io.Reader) Decoder) (*Document, error) {
+	if err := newDecoder(reader).Decode(&container); err != nil {
 		return nil, fmt.Errorf("failed decode file data: %w", err)
 	}
 
@@ -25,8 +20,22 @@ func NewDocument[T any](filepath string, container T, newDecoder func(reader io.
 	}, nil
 }
 
+func NewFileDocument[T any](filepath string, container T, newDecoder func(reader io.Reader) Decoder) (*Document, error) {
+	file, err := os.Open(filepath)
+	if err != nil {
+		return nil, fmt.Errorf("failed open file: %w", err)
+	}
+	defer file.Close()
+
+	return NewDocument(file, container, newDecoder)
+}
+
 func NewMapDocument(filepath string, newDecoder func(reader io.Reader) Decoder) (*Document, error) {
-	return NewDocument(filepath, map[string]any{}, newDecoder)
+	return NewFileDocument(filepath, map[string]any{}, newDecoder)
+}
+
+func NewListDocument(filepath string, newDecoder func(reader io.Reader) Decoder) (*Document, error) {
+	return NewFileDocument(filepath, []any{}, newDecoder)
 }
 
 func (document *Document) Section(path string, opts ...SectionOption) (*Section, error) {

@@ -18,7 +18,7 @@ func (key *Key) String() string {
 	if key.Value == nil {
 		return ""
 	}
-	return fmt.Sprintf("%s", key.Value)
+	return fmt.Sprintf("%v", key.Value)
 }
 
 // Bool returns bool type value.
