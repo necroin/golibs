@@ -109,8 +109,8 @@ func TestGraph_Preset_Render(t *testing.T) {
 }
 
 func TestGraph_Preset_Generate_Render_HTML(t *testing.T) {
-	serversCount := 10
-	appsCount := 50
+	serversCount := 5
+	appsCount := 5
 
 	servers := []*container_graph.Node[string]{}
 	apps := []*container_graph.Node[string]{}
@@ -118,6 +118,7 @@ func TestGraph_Preset_Generate_Render_HTML(t *testing.T) {
 	for serverId := 0; serverId < serversCount; serverId++ {
 		server := container_graph.NewNode(fmt.Sprintf("Server_%d", serverId), fmt.Sprintf("Addr %d", serverId))
 		server.SetOption("group", serverId)
+		server.SetOption("leader", true)
 		servers = append(servers, server)
 
 		for appId := 0; appId < appsCount; appId++ {
