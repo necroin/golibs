@@ -133,3 +133,13 @@ func (section *Section) SectionsCount() int {
 func (section *Section) KeysCount() int {
 	return len(section.Keys)
 }
+
+func (section *Section) RecursiveKeys() []*Key {
+	result := utils.MapValues(section.Keys)
+
+	for _, subSection := range section.Sections {
+		result = append(result, subSection.RecursiveKeys()...)
+	}
+
+	return result
+}
