@@ -12,3 +12,8 @@ func (transition *Transition[T]) Node() *Node[T] {
 func (transition *Transition[T]) Options() map[string]any {
 	return transition.options
 }
+
+func (transition *Transition[T]) SetOption(name string, value any) *Transition[T] {
+	transition.options[name] = value
+	return transition
+}

@@ -61,7 +61,7 @@ func (container *Graph[T]) AddNodeItem(node *Node[T]) (*Node[T], error) {
 	return node, nil
 }
 
-func (container *Graph[T]) AddTransition(from, to string) error {
+func (container *Graph[T]) AddTransition(from, to string, options ...map[string]any) error {
 	fromNode := container.nodeByNames[from]
 	toNode := container.nodeByNames[to]
 
@@ -73,17 +73,17 @@ func (container *Graph[T]) AddTransition(from, to string) error {
 		return fmt.Errorf("to node do not exist")
 	}
 
-	fromNode.AddTransition(toNode)
+	fromNode.AddTransition(toNode, options...)
 
 	return nil
 }
 
-func (container *Graph[T]) AddTransitionUndirected(n1, n2 string) error {
-	err := container.AddTransition(n1, n2)
+func (container *Graph[T]) AddTransitionUndirected(n1, n2 string, options ...map[string]any) error {
+	err := container.AddTransition(n1, n2, options...)
 	if err != nil {
 		return err
 	}
-	return container.AddTransition(n2, n1)
+	return container.AddTransition(n2, n1, options...)
 }
 
 func (container *Graph[T]) TopologicalSort() error {

@@ -65,10 +65,12 @@ func (node *Node[T]) AddTransition(toNode *Node[T], options ...map[string]any) {
 		}
 	}
 
-	node.transitions = append(node.transitions, &Transition[T]{
+	transition := &Transition[T]{
 		node:    toNode,
 		options: transitionOptions,
-	})
+	}
+
+	node.transitions = append(node.transitions, transition)
 }
 
 func (node *Node[T]) String() string {
