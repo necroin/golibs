@@ -300,12 +300,18 @@ func (container *Graph[T]) HtmlRender(writer io.Writer, options ...map[string]an
 		data.Nodes = append(data.Nodes, NodeData{Values: values})
 
 		for _, transition := range node.transitions {
+			transitionValues := map[string]any{
+				"from":   node.name,
+				"to":     transition.node.name,
+				"arrows": "to",
+			}
+
+			for optionName, optionValue := range transition.options {
+				transitionValues[optionName] = optionValue
+			}
+
 			data.Edges = append(data.Edges, EdgeData{
-				Values: map[string]any{
-					"from":   node.name,
-					"to":     transition.node.name,
-					"arrows": "to",
-				},
+				Values: transitionValues,
 			})
 		}
 	}
