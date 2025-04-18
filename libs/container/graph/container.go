@@ -108,7 +108,7 @@ func (container *Graph[T]) TopologicalSort() error {
 		states[node] = visiting
 
 		for _, neighbor := range node.transitions {
-			visit(neighbor)
+			visit(neighbor.node)
 		}
 
 		states[node] = visited

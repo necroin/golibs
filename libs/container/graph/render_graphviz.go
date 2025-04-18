@@ -26,7 +26,7 @@ func (container *Graph[T]) VisualizeDOT() string {
 	// Добавляем все переходы
 	for _, node := range container.nodes {
 		for _, transition := range node.transitions {
-			builder.WriteString(fmt.Sprintf("  \"%s\" -> \"%s\";\n", node.name, transition.name))
+			builder.WriteString(fmt.Sprintf("  \"%s\" -> \"%s\";\n", node.name, transition.node.name))
 		}
 	}
 
@@ -58,9 +58,9 @@ func (container *Graph[T]) GraphvizRender(ctx context.Context, writer io.Writer,
 
 	for _, node := range container.nodes {
 		for _, transition := range node.transitions {
-			_, err := graph.CreateEdgeByName("", cgraphNodes[node.name], cgraphNodes[transition.name])
+			_, err := graph.CreateEdgeByName("", cgraphNodes[node.name], cgraphNodes[transition.node.name])
 			if err != nil {
-				return fmt.Errorf("failed to create edge %s->%s: %w", node.name, transition.name, err)
+				return fmt.Errorf("failed to create edge %s->%s: %w", node.name, transition.node.name, err)
 			}
 		}
 	}

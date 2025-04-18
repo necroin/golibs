@@ -10,7 +10,7 @@ import (
 type Node[T any] struct {
 	name        string
 	value       T
-	transitions []*Node[T]
+	transitions []*Transition[T]
 	options     map[string]any
 }
 
@@ -18,7 +18,7 @@ func NewNode[T any](name string, value T) *Node[T] {
 	return &Node[T]{
 		name:        name,
 		value:       value,
-		transitions: []*Node[T]{},
+		transitions: []*Transition[T]{},
 		options:     map[string]any{},
 	}
 }
@@ -31,7 +31,7 @@ func (node *Node[T]) Value() T {
 	return node.value
 }
 
-func (node *Node[T]) Transitions() []*Node[T] {
+func (node *Node[T]) Transitions() []*Transition[T] {
 	return node.transitions
 }
 
@@ -45,19 +45,30 @@ func (node *Node[T]) SetOption(name string, value any) *Node[T] {
 }
 
 func (node *Node[T]) TransitionsNames() []string {
-	return utils.MapSlice(node.transitions, func(node *Node[T]) string { return node.name })
+	return utils.MapSlice(node.transitions, func(transition *Transition[T]) string { return transition.node.name })
 }
 
-func (node *Node[T]) AddTransition(toNode *Node[T]) {
+func (node *Node[T]) AddTransition(toNode *Node[T], options ...map[string]any) {
 	if node == toNode {
 		return
 	}
 
-	if slices.Contains(node.transitions, toNode) {
+	if slices.ContainsFunc(node.transitions, func(transition *Transition[T]) bool { return transition.node == toNode }) {
 		return
 	}
 
-	node.transitions = append(node.transitions, toNode)
+	transitionOptions := map[string]any{}
+
+	for _, option := range options {
+		for key, value := range option {
+			transitionOptions[key] = value
+		}
+	}
+
+	node.transitions = append(node.transitions, &Transition[T]{
+		node:    toNode,
+		options: transitionOptions,
+	})
 }
 
 func (node *Node[T]) String() string {

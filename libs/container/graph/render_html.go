@@ -75,7 +75,7 @@ const htmlTemplate = `
         ];
         
         const edges = [{{range .Edges}}
-            { from: "{{.From}}", to: "{{.To}}", arrows: "to" },{{end}}
+            {{.Values}},{{end}}
         ];
 
         {{if .WithLegend}}
@@ -264,7 +264,7 @@ func (container *Graph[T]) HtmlRender(writer io.Writer, options ...map[string]an
 	}
 
 	type EdgeData struct {
-		From, To string
+		Values map[string]any
 	}
 
 	type TemplateData struct {
@@ -301,8 +301,11 @@ func (container *Graph[T]) HtmlRender(writer io.Writer, options ...map[string]an
 
 		for _, transition := range node.transitions {
 			data.Edges = append(data.Edges, EdgeData{
-				From: node.name,
-				To:   transition.name,
+				Values: map[string]any{
+					"from":   node.name,
+					"to":     transition.node.name,
+					"arrows": "to",
+				},
 			})
 		}
 	}

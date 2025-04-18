@@ -181,7 +181,7 @@ func (container *Graph[T]) ExportToDrawIO(filename string, config *DrawIOConfig)
 				continue
 			}
 
-			targetID, ok := nodeMap[transition.name]
+			targetID, ok := nodeMap[transition.node.name]
 			if !ok {
 				continue
 			}
