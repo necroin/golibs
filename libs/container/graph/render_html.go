@@ -170,9 +170,6 @@ const htmlTemplate = `
         }
         {{end}}
 
-        const nodesSet = new vis.DataSet(nodes);
-        const edgesSet = new vis.DataSet(edges);
-
         const data = { nodes, edges };
 
         const options = {{.Options}};

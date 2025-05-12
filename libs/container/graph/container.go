@@ -50,14 +50,24 @@ func (container *Graph[T]) GetNode(name string) (*Node[T], error) {
 	return node, nil
 }
 
+func (container *Graph[T]) HasNode(name string) bool {
+	_, ok := container.nodeByNames[name]
+	return ok
+}
+
 func (container *Graph[T]) AddNode(name string, value T) (*Node[T], error) {
 	node := NewNode(name, value)
 	return container.AddNodeItem(node)
 }
 
 func (container *Graph[T]) AddNodeItem(node *Node[T]) (*Node[T], error) {
+	if container.HasNode(node.name) {
+		return nil, fmt.Errorf("node with name %s already exists", node.name)
+	}
+
 	container.nodeByNames[node.name] = node
 	container.nodes = append(container.nodes, node)
+
 	return node, nil
 }
 
