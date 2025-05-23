@@ -1,6 +1,7 @@
 package sql_schema
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -261,8 +262,9 @@ func SchemaUpgrade(db *sql.DB, currentSchema []Table, newSchema []Table) error {
 }
 
 func Migration(db *sql.DB, currentSchema []Table, newSchema []Table) error {
-	if err := InitMetadata(db); err != nil {
-		return fmt.Errorf("[Migration] failed init metadata: %s", err)
+	newSchemaData := &bytes.Buffer{}
+	if err := json.NewEncoder(newSchemaData).Encode(&newSchema); err != nil {
+		return fmt.Errorf("[Migration] failed encode new schema: %s", err)
 	}
 
 	if err := Transaction(db, func() error {
@@ -274,7 +276,7 @@ func Migration(db *sql.DB, currentSchema []Table, newSchema []Table) error {
 			return fmt.Errorf("failed delete current schema from migration table: %s", err)
 		}
 
-		if _, err := db.Exec("INSERT INTO __Schema (version, data) VALUES ('current', $1)", newSchema); err != nil {
+		if _, err := db.Exec("INSERT INTO __Schema (version, data) VALUES ('current', $1)", newSchemaData.Bytes()); err != nil {
 			return fmt.Errorf("failed insert new schema to migration table: %s", err)
 		}
 		return nil
@@ -286,6 +288,10 @@ func Migration(db *sql.DB, currentSchema []Table, newSchema []Table) error {
 }
 
 func SetSchema(db *sql.DB, data io.Reader) error {
+	if err := InitMetadata(db); err != nil {
+		return fmt.Errorf("[SetSchema] failed init metadata: %s", err)
+	}
+
 	shcemaData, err := io.ReadAll(data)
 	if err != nil {
 		return fmt.Errorf("[SetSchema] failed read schema data: %s", err)
