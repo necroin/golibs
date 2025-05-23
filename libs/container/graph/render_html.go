@@ -205,13 +205,35 @@ const htmlTemplate = `
         };
 
         network.on("zoom", throttle(zoomHandler, 100));
+
+        {{if .PhysicsStopDelay}}
+        setTimeout(() => { network.setOptions({ physics: { enabled: false } }) }, {{.PhysicsStopDelay}});
+        {{end}}
     </script>
 </body>
 </html>
 `
 
+type HtmlNodeData struct {
+	Values map[string]any
+}
+
+type HtmlEdgeData struct {
+	Values map[string]any
+}
+
+type HtmlTemplateData struct {
+	Nodes            []HtmlNodeData
+	Edges            []HtmlEdgeData
+	Options          map[string]any
+	WithLegend       bool
+	PhysicsStopDelay int64
+}
+
+type HtmlOption func(data *HtmlTemplateData)
+
 var (
-	DefaultOptions = map[string]any{
+	DefaultHtmlOptions = map[string]any{
 		"nodes": map[string]any{
 			"shape": "dot",
 			"scaling": map[string]any{
@@ -255,32 +277,15 @@ var (
 	}
 )
 
-func (container *Graph[T]) HtmlRender(writer io.Writer, options ...map[string]any) error {
-	type NodeData struct {
-		Values map[string]any
+func (container *Graph[T]) HtmlRender(writer io.Writer, options ...HtmlOption) error {
+	data := &HtmlTemplateData{
+		Nodes:   []HtmlNodeData{},
+		Edges:   []HtmlEdgeData{},
+		Options: DefaultHtmlOptions,
 	}
 
-	type EdgeData struct {
-		Values map[string]any
-	}
-
-	type TemplateData struct {
-		Nodes      []NodeData
-		Edges      []EdgeData
-		Options    map[string]any
-		WithLegend bool
-	}
-
-	data := TemplateData{
-		Nodes:   []NodeData{},
-		Edges:   []EdgeData{},
-		Options: DefaultOptions,
-	}
-
-	for _, optionsMap := range options {
-		for key, value := range optionsMap {
-			data.Options[key] = value
-		}
+	for _, option := range options {
+		option(data)
 	}
 
 	// Собираем все рёбра
@@ -294,7 +299,7 @@ func (container *Graph[T]) HtmlRender(writer io.Writer, options ...map[string]an
 			values[optionName] = optionValue
 		}
 
-		data.Nodes = append(data.Nodes, NodeData{Values: values})
+		data.Nodes = append(data.Nodes, HtmlNodeData{Values: values})
 
 		for _, transition := range node.transitions {
 			transitionValues := map[string]any{
@@ -307,7 +312,7 @@ func (container *Graph[T]) HtmlRender(writer io.Writer, options ...map[string]an
 				transitionValues[optionName] = optionValue
 			}
 
-			data.Edges = append(data.Edges, EdgeData{
+			data.Edges = append(data.Edges, HtmlEdgeData{
 				Values: transitionValues,
 			})
 		}
@@ -318,14 +323,34 @@ func (container *Graph[T]) HtmlRender(writer io.Writer, options ...map[string]an
 		return err
 	}
 
-	return tmpl.Execute(writer, data)
+	return tmpl.Execute(writer, *data)
 }
 
-func (container *Graph[T]) HtmlRenderToFile(filename string, options ...map[string]any) error {
+func (container *Graph[T]) HtmlRenderToFile(filename string, options ...HtmlOption) error {
 	file, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 	return container.HtmlRender(file, options...)
+}
+
+func WithNetworkOptions(options map[string]any) HtmlOption {
+	return func(data *HtmlTemplateData) {
+		for key, value := range options {
+			data.Options[key] = value
+		}
+	}
+}
+
+func WithLegend(enable bool) HtmlOption {
+	return func(data *HtmlTemplateData) {
+		data.WithLegend = enable
+	}
+}
+
+func WithPhysicsStopDelay(delay int64) HtmlOption {
+	return func(data *HtmlTemplateData) {
+		data.PhysicsStopDelay = delay
+	}
 }
