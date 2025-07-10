@@ -14,7 +14,7 @@ type ConcurrentSlice[V any] struct {
 
 type ConcurrentSliceIterator[V any] struct {
 	data  *ConcurrentSlice[V]
-	index uint
+	index int
 	mutex *sync.RWMutex
 }
 
@@ -27,7 +27,7 @@ func NewConcurrentSlice[V any]() *ConcurrentSlice[V] {
 }
 
 // Inserts element at the specified location in the container.
-func (concurrentSlice *ConcurrentSlice[V]) Insert(index uint, value V) error {
+func (concurrentSlice *ConcurrentSlice[V]) Insert(index int, value V) error {
 	concurrentSlice.mutex.Lock()
 	defer concurrentSlice.mutex.Unlock()
 	return concurrentSlice.data.Insert(index, value)
@@ -42,14 +42,14 @@ func (concurrentSlice *ConcurrentSlice[V]) Append(values ...V) {
 
 // Returns the element at specified location index, with bounds checking.
 // If index is not within the range of the container, an error is returned.
-func (concurrentSlice *ConcurrentSlice[V]) At(index uint) (V, error) {
+func (concurrentSlice *ConcurrentSlice[V]) At(index int) (V, error) {
 	concurrentSlice.mutex.RLock()
 	defer concurrentSlice.mutex.RUnlock()
 	return concurrentSlice.data.At(index)
 }
 
 // Erases the specified element from the container.
-func (concurrentSlice *ConcurrentSlice[V]) Erase(index uint) error {
+func (concurrentSlice *ConcurrentSlice[V]) Erase(index int) error {
 	concurrentSlice.mutex.Lock()
 	defer concurrentSlice.mutex.Unlock()
 	return concurrentSlice.data.Erase(index)
@@ -86,10 +86,16 @@ func (concurrentSlice *ConcurrentSlice[V]) Back() V {
 // Returns the element at specified location index, with bounds checking.
 // Erases the specified element from the container.
 // If index is not within the range of the container, an error is returned.
-func (concurrentSlice *ConcurrentSlice[V]) PopAt(index uint) (V, error) {
+func (concurrentSlice *ConcurrentSlice[V]) PopAt(index int) (V, error) {
 	concurrentSlice.mutex.RLock()
 	defer concurrentSlice.mutex.RUnlock()
 	return concurrentSlice.data.PopAt(index)
+}
+
+func (concurrentSlice *ConcurrentSlice[V]) PopRandom() (V, error) {
+	concurrentSlice.mutex.RLock()
+	defer concurrentSlice.mutex.RUnlock()
+	return concurrentSlice.data.PopRandom()
 }
 
 // Returns an iterator to the first element of the container.
@@ -105,7 +111,7 @@ func (concurrentSlice *ConcurrentSlice[V]) Begin() *ConcurrentSliceIterator[V] {
 func (concurrentSlice *ConcurrentSlice[V]) End() *ConcurrentSliceIterator[V] {
 	return &ConcurrentSliceIterator[V]{
 		data:  concurrentSlice,
-		index: uint(concurrentSlice.Size()),
+		index: concurrentSlice.Size(),
 		mutex: &sync.RWMutex{},
 	}
 }
@@ -127,7 +133,7 @@ func (iterator *ConcurrentSliceIterator[V]) Get() (V, error) {
 	return iterator.data.At(iterator.index)
 }
 
-func (iterator *ConcurrentSliceIterator[V]) Pos() uint {
+func (iterator *ConcurrentSliceIterator[V]) Pos() int {
 	iterator.mutex.RLock()
 	defer iterator.mutex.RUnlock()
 	return iterator.index

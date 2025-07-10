@@ -89,7 +89,7 @@ func (histogram *Histogram) divAllBuckets(value float64) {
 	histogram.plusInf.set(histogram.plusInf.Get() / value)
 
 	for bucketIterator := 0; bucketIterator < int(histogram.buckets.Count); bucketIterator++ {
-		counter, _ := histogram.values.At(uint(bucketIterator))
+		counter, _ := histogram.values.At(bucketIterator)
 		counter.set(counter.Get() / value)
 	}
 }
@@ -124,7 +124,7 @@ func (histogram *Histogram) Observe(value float64) {
 		return
 	}
 
-	bucket, _ := histogram.values.At(uint(bucketId))
+	bucket, _ := histogram.values.At(int(bucketId))
 	bucketValue := bucket.Get()
 	if bucketValue+1 < 0 {
 		histogram.divAllBuckets(divValue)
@@ -136,7 +136,7 @@ func (histogram *Histogram) Write(writer io.Writer) {
 	writer.Write([]byte(fmt.Sprintf("%s{le=\"-Inf\"} %v\n", histogram.description.Name, histogram.minusInf.Get())))
 
 	for bucketIterator := 0; bucketIterator < int(histogram.buckets.Count); bucketIterator++ {
-		counter, _ := histogram.values.At(uint(bucketIterator))
+		counter, _ := histogram.values.At(bucketIterator)
 		writer.Write([]byte(fmt.Sprintf(
 			"%s{ge=\"%v\",lt=\"%v\"} %v\n",
 			histogram.description.Name,
@@ -155,7 +155,7 @@ func (histogram *Histogram) JsonData() any {
 	values := []float64{}
 
 	for bucketIterator := 0; bucketIterator < int(histogram.buckets.Count); bucketIterator++ {
-		counter, _ := histogram.values.At(uint(bucketIterator))
+		counter, _ := histogram.values.At(bucketIterator)
 		values = append(values, counter.Get())
 	}
 
@@ -174,7 +174,7 @@ func (histogram *Histogram) Reset() {
 	histogram.minusInf.Reset()
 	histogram.plusInf.Reset()
 	for bucketIterator := 0; bucketIterator < int(histogram.buckets.Count); bucketIterator++ {
-		counter, _ := histogram.values.At(uint(bucketIterator))
+		counter, _ := histogram.values.At(bucketIterator)
 		counter.Reset()
 	}
 }
@@ -188,7 +188,7 @@ func (histogram *Histogram) String() string {
 
 	for bucketIterator := 0; bucketIterator < int(histogram.buckets.Count); bucketIterator++ {
 		bucketEnd := histogram.buckets.Range * uint(bucketIterator+1)
-		counter, _ := histogram.values.At(uint(bucketIterator))
+		counter, _ := histogram.values.At(bucketIterator)
 		percent := int(utils.SafeDivide(counter.Get(), histogram.count.Get()) * 100)
 		bucketView := &HistogramBucketView{
 			Head:  fmt.Sprintf("%v", bucketEnd),
@@ -282,7 +282,7 @@ func (histogramVector *HistogramVector) Write(writer io.Writer) {
 		writer.Write([]byte(fmt.Sprintf("%s{%s,le=\"-Inf\"} %v\n", histogramVector.description.Name, labelsText, histogram.minusInf.Get())))
 
 		for bucketIterator := 0; bucketIterator < int(histogram.buckets.Count); bucketIterator++ {
-			counter, _ := histogram.values.At(uint(bucketIterator))
+			counter, _ := histogram.values.At(bucketIterator)
 			writer.Write([]byte(fmt.Sprintf(
 				"%s{%s,ge=\"%v\",lt=\"%v\"} %v\n",
 				histogramVector.description.Name,
@@ -306,7 +306,7 @@ func (histogramVector *HistogramVector) JsonData() any {
 		values := []float64{}
 
 		for bucketIterator := 0; bucketIterator < int(histogram.buckets.Count); bucketIterator++ {
-			counter, _ := histogram.values.At(uint(bucketIterator))
+			counter, _ := histogram.values.At(bucketIterator)
 			values = append(values, counter.Get())
 		}
 

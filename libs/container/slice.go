@@ -2,29 +2,41 @@ package container
 
 import (
 	"fmt"
+	"math/rand"
+
+	"github.com/necroin/golibs/utils"
 )
 
 type Slice[V any] struct {
-	data []V
+	data            []V
+	randomGenerator *rand.Rand
 }
 
 type SliceIterator[V any] struct {
 	data  *Slice[V]
-	index uint
+	index int
 }
 
 // Constructs a new container.
 func NewSlice[V any]() *Slice[V] {
 	return &Slice[V]{
-		data: []V{},
+		data:            []V{},
+		randomGenerator: utils.NewRandomGenerator(),
 	}
 }
 
-// Inserts element at the specified location in the container.
-func (container *Slice[V]) Insert(index uint, value V) error {
+func (container *Slice[V]) CheckIndex(index int) error {
 	size := container.Size()
-	if int(index) >= size {
+	if index < 0 || index >= size {
 		return fmt.Errorf("index out of range")
+	}
+	return nil
+}
+
+// Inserts element at the specified location in the container.
+func (container *Slice[V]) Insert(index int, value V) error {
+	if err := container.CheckIndex(index); err != nil {
+		return err
 	}
 
 	container.data[index] = value
@@ -38,21 +50,20 @@ func (container *Slice[V]) Append(values ...V) {
 
 // Returns the element at specified location index, with bounds checking.
 // If index is not within the range of the container, an error is returned.
-func (container *Slice[V]) At(index uint) (V, error) {
-	size := container.Size()
-	if int(index) >= size {
-		return *new(V), fmt.Errorf("index out of range")
+func (container *Slice[V]) At(index int) (V, error) {
+	if err := container.CheckIndex(index); err != nil {
+		return *new(V), err
 	}
 
 	return container.data[index], nil
 }
 
 // Erases the specified element from the container.
-func (container *Slice[V]) Erase(index uint) error {
+func (container *Slice[V]) Erase(index int) error {
 	size := container.Size()
 
-	if int(index) >= size {
-		return fmt.Errorf("index out of range")
+	if err := container.CheckIndex(index); err != nil {
+		return err
 	}
 
 	if int(index) == size-1 {
@@ -96,7 +107,22 @@ func (container *Slice[V]) Back() V {
 // Returns the element at specified location index, with bounds checking.
 // Erases the specified element from the container.
 // If index is not within the range of the container, an error is returned.
-func (container *Slice[V]) PopAt(index uint) (V, error) {
+func (container *Slice[V]) PopAt(index int) (V, error) {
+	result, err := container.At(index)
+	if err != nil {
+		return result, err
+	}
+
+	if err := container.Erase(index); err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
+func (container *Slice[V]) PopRandom() (V, error) {
+	index := container.randomGenerator.Intn(container.Size())
+
 	result, err := container.At(index)
 	if err != nil {
 		return result, err
@@ -121,7 +147,7 @@ func (container *Slice[V]) Begin() *SliceIterator[V] {
 func (container *Slice[V]) End() *SliceIterator[V] {
 	return &SliceIterator[V]{
 		data:  container,
-		index: uint(container.Size()),
+		index: container.Size(),
 	}
 }
 
@@ -138,7 +164,7 @@ func (iterator *SliceIterator[V]) Get() (V, error) {
 	return iterator.data.At(iterator.index)
 }
 
-func (iterator *SliceIterator[V]) Pos() uint {
+func (iterator *SliceIterator[V]) Pos() int {
 	return iterator.index
 }
 

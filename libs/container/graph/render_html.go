@@ -7,78 +7,156 @@ import (
 	"os"
 )
 
-const htmlTemplate = `
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Graph Visualization</title>
-    <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.2/dist/vis-network.min.js"></script>
-    <style>
-		html,
-        body {
-            padding: 0;
-            offset: 0;
-            display: flex;
-            width: 100vw;
-            height: 100vh;
+const htmlZoomHandler = `
+        const zoomHandler = function(params) {
+            const scale = 1 / params.scale;
+
+            const minSize = options.nodes?.scaling?.label?.min || 10;
+            const maxSize = options.nodes?.scaling?.label?.max || 30;
+
+            network.setOptions({
+                nodes: {
+                    font: {
+                        size: Math.min(maxSize, Math.max(minSize, minSize * scale))
+                    }
+                }
+            });
+        };
+
+        network.on("zoom", zoomHandler);
+`
+
+const htmlHighlightHandler = `
+        var highlightActive = false;
+        var allNodes = nodesDataset.get({ returnType: "Object" });
+
+        function neighbourhoodHighlight(params) {
+            // if something is selected:
+            if (params.nodes.length > 0) {
+                highlightActive = true;
+                var i, j;
+                var selectedNode = params.nodes[0];
+                var degrees = 2;
+
+                // mark all nodes as hard to read.
+                for (var nodeId in allNodes) {
+                    allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+                    if (allNodes[nodeId].hiddenLabel === undefined) {
+                        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+                        allNodes[nodeId].label = undefined;
+                    }
+                }
+                var connectedNodes = network.getConnectedNodes(selectedNode);
+                var allConnectedNodes = [];
+
+                // get the second degree nodes
+                for (i = 1; i < degrees; i++) {
+                    for (j = 0; j < connectedNodes.length; j++) {
+                        allConnectedNodes = allConnectedNodes.concat(
+                            network.getConnectedNodes(connectedNodes[j])
+                        );
+                    }
+                }
+
+                // all second degree nodes get a different color and their label back
+                for (i = 0; i < allConnectedNodes.length; i++) {
+                    allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+                    if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+                        allNodes[allConnectedNodes[i]].label =
+                            allNodes[allConnectedNodes[i]].hiddenLabel;
+                        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+                    }
+                }
+
+                // all first degree nodes get their own color and their label back
+                for (i = 0; i < connectedNodes.length; i++) {
+                    allNodes[connectedNodes[i]].color = undefined;
+                    if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+                        allNodes[connectedNodes[i]].label =
+                            allNodes[connectedNodes[i]].hiddenLabel;
+                        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+                    }
+                }
+
+                // the main node gets its own color and its label back.
+                allNodes[selectedNode].color = undefined;
+                if (allNodes[selectedNode].hiddenLabel !== undefined) {
+                    allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+                    allNodes[selectedNode].hiddenLabel = undefined;
+                }
+            } else if (highlightActive === true) {
+                // reset all nodes
+                for (var nodeId in allNodes) {
+                    allNodes[nodeId].color = undefined;
+                    if (allNodes[nodeId].hiddenLabel !== undefined) {
+                        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+                        allNodes[nodeId].hiddenLabel = undefined;
+                    }
+                }
+                highlightActive = false;
+            }
+
+            // transform the object into an array
+            var updateArray = [];
+            for (nodeId in allNodes) {
+                if (allNodes.hasOwnProperty(nodeId)) {
+                    updateArray.push(allNodes[nodeId]);
+                }
+            }
+            nodesDataset.update(updateArray);
         }
 
-        .vertical-layout {
-            display: flex;
-            flex-grow: 1;
-        }
+        network.on("click", neighbourhoodHighlight);
+`
 
-        .horizontal-layout {
-            display: flex;
-            flex-grow: 1;
-        }
+const htmlClustering = `
+        function groupNodesBySimilarEdges(nodes, edges) {
+            const nodeConnections = {};
 
-        #graph {
-            flex-grow: 1;
-            border: 1px solid #ddd;
-        }
-
-        #legend {
-            display: flex;
-            flex-direction: column;
-            overflow: auto;
-            gap: 10px;
-        }
-
-        .legend-item {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .group {
-            display: flex;
-            flex-direction: row;
-        }
-
-        .group-item {
-            padding: 10px;
-        }
-    </style>
-</head>
-<body>
-    <div class="horizontal-layout">
-        <div class="vertical-layout">
-            <div id="legend"></div>
-        </div>
-        <div class="vertical-layout">
-            <div id="graph"></div>
-        </div>
-    </div>
-    <script>
-        const nodes = [{{range .Nodes}}
-            {{.Values}},{{end}}
-        ];
+            // Собираем связи для каждого узла
+            nodes.forEach(node => {
+                nodeConnections[node.id] = new Set();
+            });
         
-        const edges = [{{range .Edges}}
-            {{.Values}},{{end}}
-        ];
+            edges.forEach(edge => {
+                nodeConnections[edge.from].add(edge.to);
+                nodeConnections[edge.to].add(edge.from);
+            });
+        
+            // Группируем узлы с одинаковыми связями
+            const clusters = {};
+            nodes.forEach(node => {
+                const key = [...nodeConnections[node.id]].sort().join(',');
+                if (!clusters[key]) clusters[key] = [];
+                clusters[key].push(node);
+            });
+        
+            return Object.values(clusters);
+        }
 
-        {{if .WithLegend}}
+        const clusters = groupNodesBySimilarEdges(nodes, edges);
+        console.log(clusters);
+
+        for (const cluster of clusters) {
+            if (clusters.length >= 1) {
+                const ids = [];
+                for (const node of cluster){
+                    ids.push(node.id)
+                }
+
+                network.cluster({
+                    joinCondition: (childOptions) => ids.includes(childOptions.id),
+                    clusterNodeProperties: {
+                        label: cluster[0].group,
+                        group: cluster[0].group,
+                        shape: "dot",
+                    },
+                })
+            }
+        }
+`
+
+const htmlLegend = `
         const legend = document.getElementById("legend");
         const nodesByGroup = {}
         const nodesWithoutGroup = []
@@ -168,44 +246,96 @@ const htmlTemplate = `
             nodeElement.innerText = node.label
             legend.appendChild(nodeElement)
         }
-        {{end}}
+`
 
-        const data = { nodes, edges };
+const htmlTemplate = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Graph Visualization</title>
+    <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.2/dist/vis-network.min.js"></script>
+    <style>
+		html,
+        body {
+            padding: 0;
+            offset: 0;
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .vertical-layout {
+            display: flex;
+            flex-grow: 1;
+        }
+
+        .horizontal-layout {
+            display: flex;
+            flex-grow: 1;
+        }
+
+        #graph {
+            flex-grow: 1;
+            border: 1px solid #ddd;
+        }
+
+        #legend {
+            display: flex;
+            flex-direction: column;
+            overflow: auto;
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .group {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .group-item {
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="horizontal-layout">
+        <div class="vertical-layout">
+            <div id="legend"></div>
+        </div>
+        <div class="vertical-layout">
+            <div id="graph"></div>
+        </div>
+    </div>
+    <script>
+        const nodes = [{{range .Nodes}}
+            {{.Values}},{{end}}
+        ];
+        
+        const edges = [{{range .Edges}}
+            {{.Values}},{{end}}
+        ];
+
+        const nodesDataset = new vis.DataSet(nodes);
+        const edgesDataset = new vis.DataSet(edges);
+
+        const data = { nodes: nodesDataset, edges: edgesDataset };
 
         const options = {{.Options}};
 
         const container = document.getElementById("graph");
         const network = new vis.Network(container, data, options);
 
-        const zoomHandler = function(params) {
-            console.log("Zoom:", params);
+        console.log(network);
 
-            const scale = 1 / params.scale;
-
-            const minSize = options.nodes?.scaling?.label?.min || 10;
-            const maxSize = options.nodes?.scaling?.label?.max || 30;
-
-            network.setOptions({
-                nodes: {
-                    font: {
-                        size: Math.min(maxSize, Math.max(minSize, minSize * scale))
-                    }
-                }
-            });
-        };
-
-        function throttle(func, delay) {
-            let lastCall = 0;
-            return function(...args) {
-                const now = new Date().getTime();
-                if (now - lastCall < delay) return;
-                lastCall = now;
-                return func.apply(this, args);
-            };
-        };
-
-        network.on("zoom", throttle(zoomHandler, 100));
-
+        {{.Legend}}
+        {{.Clustering}}
+        {{.ZoomHandler}}
+        {{.HighlightHandler}}
+        
         {{if .PhysicsStopDelay}}
         setTimeout(() => { network.setOptions({ physics: { enabled: false } }) }, {{.PhysicsStopDelay}});
         {{end}}
@@ -223,10 +353,14 @@ type HtmlEdgeData struct {
 }
 
 type HtmlTemplateData struct {
-	Nodes            []HtmlNodeData
-	Edges            []HtmlEdgeData
-	Options          map[string]any
-	WithLegend       bool
+	Nodes   []HtmlNodeData
+	Edges   []HtmlEdgeData
+	Options map[string]any
+
+	Legend           template.JS
+	Clustering       template.JS
+	ZoomHandler      template.JS
+	HighlightHandler template.JS
 	PhysicsStopDelay int64
 }
 
@@ -239,10 +373,6 @@ var (
 			"scaling": map[string]any{
 				"min": 10,
 				"max": 30,
-				"label": map[string]any{
-					"min": 10,
-					"max": 100,
-				},
 			},
 			"font": map[string]any{
 				"size": 12,
@@ -250,29 +380,39 @@ var (
 			},
 		},
 		"edges": map[string]any{
-			"width": 0.15,
+			"width": 0.05,
 			"color": map[string]any{"inherit": "from"},
 			"smooth": map[string]any{
 				"type": "continuous",
 			},
 		},
 		"physics": map[string]any{
-			"solver":        "forceAtlas2Based",
-			"stabilization": false,
+			"solver": "forceAtlas2Based",
+			"stabilization": map[string]any{
+				"enabled":    true,
+				"iterations": 100000,
+			},
 			"barnesHut": map[string]any{
-				"gravitationalConstant": -80000,
+				"gravitationalConstant": -2000,
 				"springConstant":        0.01,
 				"springLength":          200,
 			},
 			"forceAtlas2Based": map[string]any{
 				"gravitationalConstant": -2000,
 				"springConstant":        0.1,
-				"springLength":          200,
+				// "springLength":          200,
+
+				"theta":          0.5,
+				"centralGravity": 0.01,
+				"springLength":   100,
+				"damping":        0.4,
+				"avoidOverlap":   1,
 			},
 		},
 		"interaction": map[string]any{
 			"tooltipDelay":    200,
 			"hideEdgesOnDrag": true,
+			"hideEdgesOnZoom": true,
 		},
 	}
 )
@@ -343,9 +483,27 @@ func WithNetworkOptions(options map[string]any) HtmlOption {
 	}
 }
 
-func WithLegend(enable bool) HtmlOption {
+func WithLegend() HtmlOption {
 	return func(data *HtmlTemplateData) {
-		data.WithLegend = enable
+		data.Legend = template.JS(htmlLegend)
+	}
+}
+
+func WithClustering() HtmlOption {
+	return func(data *HtmlTemplateData) {
+		data.Clustering = template.JS(htmlClustering)
+	}
+}
+
+func WithZoom() HtmlOption {
+	return func(data *HtmlTemplateData) {
+		data.ZoomHandler = template.JS(htmlZoomHandler)
+	}
+}
+
+func WithHighlight() HtmlOption {
+	return func(data *HtmlTemplateData) {
+		data.HighlightHandler = template.JS(htmlHighlightHandler)
 	}
 }
 
