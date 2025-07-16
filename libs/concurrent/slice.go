@@ -64,7 +64,9 @@ func (concurrentSlice *ConcurrentSlice[V]) Size() int {
 
 // Checks if the container has no elements.
 func (concurrentSlice *ConcurrentSlice[V]) IsEmpty() bool {
-	return concurrentSlice.Size() == 0
+	concurrentSlice.mutex.RLock()
+	defer concurrentSlice.mutex.RUnlock()
+	return concurrentSlice.data.IsEmpty()
 }
 
 // Returns the first element in the container.
@@ -87,14 +89,14 @@ func (concurrentSlice *ConcurrentSlice[V]) Back() V {
 // Erases the specified element from the container.
 // If index is not within the range of the container, an error is returned.
 func (concurrentSlice *ConcurrentSlice[V]) PopAt(index int) (V, error) {
-	concurrentSlice.mutex.RLock()
-	defer concurrentSlice.mutex.RUnlock()
+	concurrentSlice.mutex.Lock()
+	defer concurrentSlice.mutex.Unlock()
 	return concurrentSlice.data.PopAt(index)
 }
 
 func (concurrentSlice *ConcurrentSlice[V]) PopRandom() (V, error) {
-	concurrentSlice.mutex.RLock()
-	defer concurrentSlice.mutex.RUnlock()
+	concurrentSlice.mutex.Lock()
+	defer concurrentSlice.mutex.Unlock()
 	return concurrentSlice.data.PopRandom()
 }
 
