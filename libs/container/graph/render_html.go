@@ -431,24 +431,24 @@ func (container *Graph[T]) HtmlRender(writer io.Writer, options ...HtmlOption) e
 	// Собираем все рёбра
 	for _, node := range container.nodes {
 		values := map[string]any{
-			"id":    node.name,
-			"label": fmt.Sprintf("%s\n%v", node.name, node.value),
+			"id":    node.Name(),
+			"label": fmt.Sprintf("%s\n%v", node.Name(), node.Value()),
 		}
 
-		for optionName, optionValue := range node.options {
+		for optionName, optionValue := range node.Options() {
 			values[optionName] = optionValue
 		}
 
 		data.Nodes = append(data.Nodes, HtmlNodeData{Values: values})
 
-		for _, transition := range node.transitions {
+		for _, transition := range node.Transitions() {
 			transitionValues := map[string]any{
-				"from":   node.name,
-				"to":     transition.node.name,
+				"from":   node.Name(),
+				"to":     transition.Node().Name(),
 				"arrows": "to",
 			}
 
-			for optionName, optionValue := range transition.options {
+			for optionName, optionValue := range transition.Options() {
 				transitionValues[optionName] = optionValue
 			}
 

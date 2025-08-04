@@ -20,13 +20,13 @@ func (container *Graph[T]) VisualizeDOT() string {
 
 	// Добавляем все узлы
 	for _, node := range container.nodes {
-		builder.WriteString(fmt.Sprintf("  \"%s\" [label=\"%s\\n%v\"];\n", node.name, node.name, node.value))
+		builder.WriteString(fmt.Sprintf("  \"%s\" [label=\"%s\\n%v\"];\n", node.Name(), node.Name(), node.Value()))
 	}
 
 	// Добавляем все переходы
 	for _, node := range container.nodes {
-		for _, transition := range node.transitions {
-			builder.WriteString(fmt.Sprintf("  \"%s\" -> \"%s\";\n", node.name, transition.node.name))
+		for _, transition := range node.Transitions() {
+			builder.WriteString(fmt.Sprintf("  \"%s\" -> \"%s\";\n", node.Name(), transition.Node().Name()))
 		}
 	}
 
@@ -46,21 +46,21 @@ func (container *Graph[T]) GraphvizRender(ctx context.Context, writer io.Writer,
 
 	cgraphNodes := make(map[string]*cgraph.Node)
 	for _, node := range container.nodes {
-		cgraphNode, err := graph.CreateNodeByName(node.name)
+		cgraphNode, err := graph.CreateNodeByName(node.Name())
 		if err != nil {
-			return fmt.Errorf("failed to create node %s: %w", node.name, err)
+			return fmt.Errorf("failed to create node %s: %w", node.Name(), err)
 		}
-		cgraphNode.SetLabel(fmt.Sprintf("%s\n%v", node.name, node.value))
+		cgraphNode.SetLabel(fmt.Sprintf("%s\n%v", node.Name(), node.Value()))
 		cgraphNode.SetShape(shape)
 		cgraphNode.SetStyle(cgraph.FilledNodeStyle)
-		cgraphNodes[node.name] = cgraphNode
+		cgraphNodes[node.Name()] = cgraphNode
 	}
 
 	for _, node := range container.nodes {
-		for _, transition := range node.transitions {
-			_, err := graph.CreateEdgeByName("", cgraphNodes[node.name], cgraphNodes[transition.node.name])
+		for _, transition := range node.Transitions() {
+			_, err := graph.CreateEdgeByName("", cgraphNodes[node.Name()], cgraphNodes[transition.Node().Name()])
 			if err != nil {
-				return fmt.Errorf("failed to create edge %s->%s: %w", node.name, transition.node.name, err)
+				return fmt.Errorf("failed to create edge %s->%s: %w", node.Name(), transition.Node().Name(), err)
 			}
 		}
 	}

@@ -2,7 +2,6 @@ package container_graph
 
 import (
 	"fmt"
-	"slices"
 
 	"github.com/necroin/golibs/utils"
 )
@@ -10,7 +9,7 @@ import (
 type Node[T any] struct {
 	name        string
 	value       T
-	transitions []*Transition[T]
+	transitions map[string]*Transition[T]
 	options     map[string]any
 }
 
@@ -18,7 +17,7 @@ func NewNode[T any](name string, value T) *Node[T] {
 	return &Node[T]{
 		name:        name,
 		value:       value,
-		transitions: []*Transition[T]{},
+		transitions: map[string]*Transition[T]{},
 		options:     map[string]any{},
 	}
 }
@@ -31,7 +30,7 @@ func (node *Node[T]) Value() T {
 	return node.value
 }
 
-func (node *Node[T]) Transitions() []*Transition[T] {
+func (node *Node[T]) Transitions() map[string]*Transition[T] {
 	return node.transitions
 }
 
@@ -45,7 +44,7 @@ func (node *Node[T]) SetOption(name string, value any) *Node[T] {
 }
 
 func (node *Node[T]) TransitionsNames() []string {
-	return utils.MapSlice(node.transitions, func(transition *Transition[T]) string { return transition.node.name })
+	return utils.MapToSlice(node.Transitions(), func(key string, transition *Transition[T]) string { return transition.node.Name() })
 }
 
 func (node *Node[T]) AddTransition(toNode *Node[T], options ...map[string]any) {
@@ -53,7 +52,7 @@ func (node *Node[T]) AddTransition(toNode *Node[T], options ...map[string]any) {
 		return
 	}
 
-	if slices.ContainsFunc(node.transitions, func(transition *Transition[T]) bool { return transition.node == toNode }) {
+	if _, ok := node.Transitions()[toNode.Name()]; ok {
 		return
 	}
 
@@ -70,9 +69,13 @@ func (node *Node[T]) AddTransition(toNode *Node[T], options ...map[string]any) {
 		options: transitionOptions,
 	}
 
-	node.transitions = append(node.transitions, transition)
+	node.transitions[toNode.Name()] = transition
+}
+
+func (node *Node[T]) RemoveTransition(name string) {
+	delete(node.transitions, name)
 }
 
 func (node *Node[T]) String() string {
-	return fmt.Sprintf("{name: %s, value: %v}", node.name, node.value)
+	return fmt.Sprintf("{name: %s, value: %v}", node.Name(), node.Value())
 }

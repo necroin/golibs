@@ -30,33 +30,6 @@ func MapCopy[K comparable, V any](value map[K]V) map[K]V {
 	return result
 }
 
-func SliceToMultimap[K comparable, V any](slice []V, keyHandler func(element V) K) map[K][]V {
-	result := map[K][]V{}
-	for _, element := range slice {
-		key := keyHandler(element)
-		result[key] = append(result[key], element)
-	}
-	return result
-}
-
-func SliceToMap[M any, K comparable, V any](slice []M, keyHandler func(element M) (K, V)) map[K]V {
-	result := map[K]V{}
-	for _, element := range slice {
-		key, value := keyHandler(element)
-		result[key] = value
-	}
-	return result
-}
-
-func MapSlice[M any, N any](slice []M, handler func(element M) N) []N {
-	result := []N{}
-	for _, element := range slice {
-		newElement := handler(element)
-		result = append(result, newElement)
-	}
-	return result
-}
-
 func MapKeys[K comparable, V any](container map[K]V) []K {
 	result := []K{}
 	for key := range container {

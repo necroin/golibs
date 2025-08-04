@@ -78,7 +78,7 @@ func (container *Graph[T]) ExportToDrawIO(filename string, config *DrawIOConfig)
 	// Инициализация позиций
 	positions := map[string]*utils.Vector2D{}
 	for _, node := range container.nodes {
-		positions[node.name] = &utils.Vector2D{}
+		positions[node.Name()] = &utils.Vector2D{}
 	}
 
 	forcedirected.InitializePositions(
@@ -148,17 +148,17 @@ func (container *Graph[T]) ExportToDrawIO(filename string, config *DrawIOConfig)
 	// Добавляем узлы
 	for _, node := range container.nodes {
 		cellID := fmt.Sprintf("%d", nodeId)
-		nodeMap[node.name] = cellID
+		nodeMap[node.Name()] = cellID
 
 		mx.Pages[0].Graph.Cells = append(mx.Pages[0].Graph.Cells, mxCell{
 			ID:     cellID,
-			Value:  fmt.Sprintf("%s\n%v", node.name, node.value),
+			Value:  fmt.Sprintf("%s\n%v", node.Name(), node.Value()),
 			Style:  "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;",
 			Parent: "1",
 			Vertex: "1",
 			Geometry: &mxGeometry{
-				X:      int((positions[node.name].X - minX) * scale),
-				Y:      int((positions[node.name].Y - minY) * scale),
+				X:      int((positions[node.Name()].X - minX) * scale),
+				Y:      int((positions[node.Name()].Y - minY) * scale),
 				Width:  config.NodeWidth,
 				Height: config.NodeHeight,
 				As:     "geometry",
@@ -175,13 +175,13 @@ func (container *Graph[T]) ExportToDrawIO(filename string, config *DrawIOConfig)
 
 	// Добавляем связи
 	for _, node := range container.nodes {
-		for _, transition := range node.transitions {
-			sourceID, ok := nodeMap[node.name]
+		for _, transition := range node.Transitions() {
+			sourceID, ok := nodeMap[node.Name()]
 			if !ok {
 				continue
 			}
 
-			targetID, ok := nodeMap[transition.node.name]
+			targetID, ok := nodeMap[transition.node.Name()]
 			if !ok {
 				continue
 			}

@@ -8,42 +8,40 @@ import (
 )
 
 type Graph[T any] struct {
-	nodes       []*Node[T]
-	nodeByNames map[string]*Node[T]
+	nodes map[string]*Node[T]
 }
 
 func New[T any](nodes ...*Node[T]) *Graph[T] {
 	nodeByNames := map[string]*Node[T]{}
 	for _, node := range nodes {
-		nodeByNames[node.name] = node
+		nodeByNames[node.Name()] = node
 	}
 
 	return &Graph[T]{
-		nodes:       nodes,
-		nodeByNames: nodeByNames,
+		nodes: nodeByNames,
 	}
 }
 
-func (container *Graph[T]) Nodes() []*Node[T] {
+func (container *Graph[T]) Nodes() map[string]*Node[T] {
 	return container.nodes
 }
 
 func (container *Graph[T]) NodesNames() []string {
-	return utils.MapSlice(
+	return utils.MapToSlice(
 		container.nodes,
-		func(node *Node[T]) string { return node.name },
+		func(key string, node *Node[T]) string { return node.Name() },
 	)
 }
 
 func (container *Graph[T]) NodesTransitionsNames() map[string][]string {
-	return utils.SliceToMap(
+	return utils.MapToMap(
 		container.nodes,
-		func(node *Node[T]) (string, []string) { return node.name, node.TransitionsNames() },
+		func(key string, node *Node[T]) (string, []string) { return node.Name(), node.TransitionsNames() },
 	)
 }
 
 func (container *Graph[T]) GetNode(name string) (*Node[T], error) {
-	node, ok := container.nodeByNames[name]
+	node, ok := container.nodes[name]
 	if !ok {
 		return nil, fmt.Errorf("node with name %s not exitst", name)
 	}
@@ -51,7 +49,7 @@ func (container *Graph[T]) GetNode(name string) (*Node[T], error) {
 }
 
 func (container *Graph[T]) HasNode(name string) bool {
-	_, ok := container.nodeByNames[name]
+	_, ok := container.nodes[name]
 	return ok
 }
 
@@ -61,19 +59,18 @@ func (container *Graph[T]) AddNode(name string, value T) (*Node[T], error) {
 }
 
 func (container *Graph[T]) AddNodeItem(node *Node[T]) (*Node[T], error) {
-	if container.HasNode(node.name) {
-		return nil, fmt.Errorf("node with name %s already exists", node.name)
+	if container.HasNode(node.Name()) {
+		return nil, fmt.Errorf("node with name %s already exists", node.Name())
 	}
 
-	container.nodeByNames[node.name] = node
-	container.nodes = append(container.nodes, node)
+	container.nodes[node.Name()] = node
 
 	return node, nil
 }
 
 func (container *Graph[T]) AddTransition(from, to string, options ...map[string]any) error {
-	fromNode := container.nodeByNames[from]
-	toNode := container.nodeByNames[to]
+	fromNode := container.nodes[from]
+	toNode := container.nodes[to]
 
 	if fromNode == nil {
 		return fmt.Errorf("from node do not exist")
@@ -117,7 +114,7 @@ func (container *Graph[T]) TopologicalSort() error {
 
 		states[node] = visiting
 
-		for _, neighbor := range node.transitions {
+		for _, neighbor := range node.Transitions() {
 			visit(neighbor.node)
 		}
 
@@ -133,7 +130,7 @@ func (container *Graph[T]) TopologicalSort() error {
 	}
 
 	slices.Reverse(result)
-	container.nodes = result
+	container.nodes = utils.SliceToMap(result, func(node *Node[T]) (string, *Node[T]) { return node.Name(), node })
 
 	return nil
 }

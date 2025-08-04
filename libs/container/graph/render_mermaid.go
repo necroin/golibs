@@ -12,8 +12,8 @@ func (container *Graph[T]) VisualizeMermaid() string {
 	builder.WriteString("graph LR\n")
 
 	for _, node := range container.nodes {
-		for _, transition := range node.transitions {
-			builder.WriteString(fmt.Sprintf("\t%s --> %s\n", node.name, transition.node.name))
+		for _, transition := range node.Transitions() {
+			builder.WriteString(fmt.Sprintf("\t%s --> %s\n", node.Name(), transition.Node().Name()))
 		}
 	}
 
