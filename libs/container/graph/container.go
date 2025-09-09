@@ -26,6 +26,10 @@ func (container *Graph[T]) Nodes() map[string]*Node[T] {
 	return container.nodes
 }
 
+func (container *Graph[T]) NodesList() []*Node[T] {
+	return utils.MapToSlice(container.nodes, func(key string, node *Node[T]) *Node[T] { return node })
+}
+
 func (container *Graph[T]) NodesNames() []string {
 	return utils.MapToSlice(
 		container.nodes,

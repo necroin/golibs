@@ -53,7 +53,7 @@ func TestGraph_Random_Render(t *testing.T) {
 	}
 
 	for _, node := range graph.Nodes() {
-		randomNode := utils.GetRandomFrom(graph.Nodes()...)
+		randomNode := utils.GetRandomFrom(graph.NodesList()...)
 		node.AddTransition(randomNode)
 	}
 
