@@ -157,9 +157,9 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 		}
 
 		ignoreNestedNames := []string{}
-		for _, ignoreType := range extendOption.IgnoreNested {
-			rIgnoreType := reflect.TypeOf(ignoreType)
-			ignoreNestedNames = append(ignoreNestedNames, rIgnoreType.PkgPath()+"/"+rIgnoreType.Name())
+		for _, ignore := range extendOption.IgnoreNested {
+			rtIgnore := reflect.TypeOf(ignore)
+			ignoreNestedNames = append(ignoreNestedNames, rtIgnore.PkgPath()+"/"+rtIgnore.Name())
 		}
 
 		rvExValue := reflect.ValueOf(extendOption.Value)
@@ -223,7 +223,6 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 			if rtsField == nil {
 				if utils.IsStruct(rvExField) && !inIgnoreNestedList {
 					nestedStruct := NewStruct()
-					nestedStruct.Extend(nestedExtendOption)
 					rtsField = NewRTField(rtExField.Name, nestedStruct)
 				} else {
 					rtsField = NewRTField(rtExField.Name, GetDefaultValue(extendOption.DefaultValueMode, rtExField.Type))
@@ -234,8 +233,18 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 				}
 			}
 
+			if !rtsField.IsStruct() && utils.IsStruct(rvExField) && !inIgnoreNestedList {
+				return fmt.Errorf("[RTStruct] [Extend] %s field overwrite from value to struct", rtsField.Name())
+			}
+
+			if rtsField.IsStruct() && !utils.IsStruct(rvExField) {
+				return fmt.Errorf("[RTStruct] [Extend] %s field overwrite from struct to value", rtsField.Name())
+			}
+
 			if utils.IsStruct(rvExField) && rtsField.IsStruct() && !inIgnoreNestedList {
-				rtsField.AsStruct().Extend(nestedExtendOption)
+				if err := rtsField.AsStruct().Extend(nestedExtendOption); err != nil {
+					return fmt.Errorf("[RTStruct] [Extend] failed extend nested struct: %s", err)
+				}
 			}
 
 			for exTagName, rtfTagName := range extendOption.Tags {
