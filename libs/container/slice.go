@@ -25,6 +25,12 @@ func NewSlice[V any]() *Slice[V] {
 	}
 }
 
+// Returns data.
+func (container *Slice[V]) Data() []V {
+	return container.data
+}
+
+// Checks index in range of slice.
 func (container *Slice[V]) CheckIndex(index int) error {
 	size := container.Size()
 	if index < 0 || index >= size {

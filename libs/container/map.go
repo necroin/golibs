@@ -13,6 +13,11 @@ func NewMap[K comparable, V any]() *Map[K, V] {
 	}
 }
 
+// Returns data.
+func (container *Map[K, V]) Data() map[K]V {
+	return container.data
+}
+
 // Inserts element into the container, replace if the container already contain an element with an equivalent key.
 func (container *Map[K, V]) Insert(key K, value V) {
 	container.data[key] = value
