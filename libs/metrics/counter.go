@@ -50,7 +50,7 @@ func (counter *Counter) Description() *Description {
 }
 
 func (counter *Counter) Write(writer io.Writer) {
-	writer.Write([]byte(fmt.Sprintf("%s %v\n", counter.description.Name, counter.value.Get())))
+	fmt.Fprintf(writer, "%s %v\n", counter.description.Name, counter.value.Get())
 }
 
 func (counter *Counter) JsonData() any {

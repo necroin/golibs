@@ -58,7 +58,7 @@ func (gauge *Gauge) Description() *Description {
 }
 
 func (gauge *Gauge) Write(writer io.Writer) {
-	writer.Write([]byte(fmt.Sprintf("%s %v\n", gauge.description.Name, gauge.value.Get())))
+	fmt.Fprintf(writer, "%s %v\n", gauge.description.Name, gauge.value.Get())
 }
 
 func (gauge *Gauge) JsonData() any {

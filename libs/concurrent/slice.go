@@ -26,6 +26,11 @@ func NewConcurrentSlice[V any]() *ConcurrentSlice[V] {
 	}
 }
 
+// Returns data.
+func (container *ConcurrentSlice[V]) Data() []V {
+	return container.data.Data()
+}
+
 // Inserts element at the specified location in the container.
 func (concurrentSlice *ConcurrentSlice[V]) Insert(index int, value V) error {
 	concurrentSlice.mutex.Lock()

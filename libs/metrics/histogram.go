@@ -84,6 +84,30 @@ func (histogram *Histogram) Description() *Description {
 	return histogram.description
 }
 
+func (histogram *Histogram) Buckets() Buckets {
+	return histogram.buckets
+}
+
+func (histogram *Histogram) MinusInf() *Counter {
+	return histogram.minusInf
+}
+
+func (histogram *Histogram) PlusInf() *Counter {
+	return histogram.plusInf
+}
+
+func (histogram *Histogram) Values() []*Counter {
+	return histogram.values.Data()
+}
+
+func (histogram *Histogram) Sum() *Counter {
+	return histogram.sum
+}
+
+func (histogram *Histogram) Count() *Counter {
+	return histogram.count
+}
+
 func (histogram *Histogram) divAllBuckets(value float64) {
 	histogram.minusInf.set(histogram.minusInf.Get() / value)
 	histogram.plusInf.set(histogram.plusInf.Get() / value)
@@ -133,22 +157,22 @@ func (histogram *Histogram) Observe(value float64) {
 }
 
 func (histogram *Histogram) Write(writer io.Writer) {
-	writer.Write([]byte(fmt.Sprintf("%s{le=\"-Inf\"} %v\n", histogram.description.Name, histogram.minusInf.Get())))
+	fmt.Fprintf(writer, "%s{le=\"-Inf\"} %v\n", histogram.description.Name, histogram.minusInf.Get())
 
 	for bucketIterator := 0; bucketIterator < int(histogram.buckets.Count); bucketIterator++ {
 		counter, _ := histogram.values.At(bucketIterator)
-		writer.Write([]byte(fmt.Sprintf(
+		fmt.Fprintf(writer,
 			"%s{ge=\"%v\",lt=\"%v\"} %v\n",
 			histogram.description.Name,
 			bucketIterator*int(histogram.buckets.Range),
 			(bucketIterator+1)*int(histogram.buckets.Range),
 			counter.Get(),
-		)))
+		)
 	}
 
-	writer.Write([]byte(fmt.Sprintf("%s{ge=\"+Inf\"} %v\n", histogram.description.Name, histogram.plusInf.Get())))
-	writer.Write([]byte(fmt.Sprintf("%s_sum %v\n", histogram.description.Name, histogram.sum.Get())))
-	writer.Write([]byte(fmt.Sprintf("%s_count %v\n", histogram.description.Name, histogram.count.Get())))
+	fmt.Fprintf(writer, "%s{ge=\"+Inf\"} %v\n", histogram.description.Name, histogram.plusInf.Get())
+	fmt.Fprintf(writer, "%s_sum %v\n", histogram.description.Name, histogram.sum.Get())
+	fmt.Fprintf(writer, "%s_count %v\n", histogram.description.Name, histogram.count.Get())
 }
 
 func (histogram *Histogram) JsonData() any {
