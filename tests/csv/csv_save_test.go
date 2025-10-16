@@ -1,23 +1,15 @@
 package csv_tests
 
 import (
-	"os"
-	"path"
+	"bytes"
 	"testing"
 
 	"github.com/necroin/golibs/libs/csv"
 	"github.com/necroin/golibs/utils"
 )
 
-const (
-	outDataPath = "./assets/out"
-)
-
 func TestSave_Common(t *testing.T) {
-	file, err := os.Create(path.Join(outDataPath, "common.csv"))
-	if err != nil {
-		t.Error(err)
-	}
+	file := &bytes.Buffer{}
 
 	data := []CommonRow{
 		{
@@ -38,15 +30,14 @@ func TestSave_Common(t *testing.T) {
 	}
 
 	if err := csv.Marshal(file, data); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
+
+	SaveAssert(t, file.String(), string(CommonData))
 }
 
 func TestSave_Pointer(t *testing.T) {
-	file, err := os.Create(path.Join(outDataPath, "pointer.csv"))
-	if err != nil {
-		t.Error(err)
-	}
+	file := &bytes.Buffer{}
 
 	data := []PointerRow{
 		{
@@ -67,15 +58,14 @@ func TestSave_Pointer(t *testing.T) {
 	}
 
 	if err := csv.Marshal(file, data); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
+
+	SaveAssert(t, file.String(), string(CommonData))
 }
 
 func TestSave_Pointer_Nil(t *testing.T) {
-	file, err := os.Create(path.Join(outDataPath, "pointer_nil.csv"))
-	if err != nil {
-		t.Error(err)
-	}
+	file := &bytes.Buffer{}
 
 	data := []PointerRow{
 		{
@@ -101,15 +91,14 @@ func TestSave_Pointer_Nil(t *testing.T) {
 	}
 
 	if err := csv.Marshal(file, data); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
+
+	SaveAssert(t, file.String(), string(PointerNilData))
 }
 
 func TestSave_Nested(t *testing.T) {
-	file, err := os.Create(path.Join(outDataPath, "nested.csv"))
-	if err != nil {
-		t.Error(err)
-	}
+	file := &bytes.Buffer{}
 
 	data := []NestedRow{
 		{
@@ -136,15 +125,14 @@ func TestSave_Nested(t *testing.T) {
 	}
 
 	if err := csv.Marshal(file, data); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
+
+	SaveAssert(t, file.String(), string(CommonData))
 }
 
 func TestSave_Typed(t *testing.T) {
-	file, err := os.Create(path.Join(outDataPath, "typed.csv"))
-	if err != nil {
-		t.Error(err)
-	}
+	file := &bytes.Buffer{}
 
 	data := []TypedRow{
 		{
@@ -156,6 +144,8 @@ func TestSave_Typed(t *testing.T) {
 	}
 
 	if err := csv.Marshal(file, data); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
+
+	SaveAssert(t, file.String(), string(TypedData))
 }

@@ -17,10 +17,13 @@ func NewCSVAdapter(structType *RTStruct, value reflect.Value) csv.Adapter {
 		panic("[rstruct] [CSVAdapter] failed cast reflect interface to RVStruct")
 	}
 
-	instance := structType.New()
-	castedValue.rtStruct = structType
-	castedValue.fields = instance.fields
-	castedValue.fieldsByName = instance.fieldsByName
+	if castedValue.rtStruct == nil {
+		instance := structType.New()
+		castedValue.rtStruct = structType
+		castedValue.fields = instance.fields
+		castedValue.fieldsByName = instance.fieldsByName
+	}
+
 	return &CSVAdapter{
 		structValue: castedValue,
 		fieldValue:  nil,
@@ -65,7 +68,6 @@ func (csva *CSVAdapter) Set(value any) {
 		}
 		csva.structValue = castedValue
 	}
-
 }
 
 func (csva *CSVAdapter) Get() any {

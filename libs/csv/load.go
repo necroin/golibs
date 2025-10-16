@@ -121,7 +121,7 @@ func fillStruct(structValue Adapter, data []string, columns map[string]int, opti
 
 func setValue(field Adapter, data string, options Options) error {
 	if options.TrimSpace {
-		data = strings.TrimSpace(data)
+		data = strings.Trim(data, "\t ")
 	}
 
 	if data == "" {

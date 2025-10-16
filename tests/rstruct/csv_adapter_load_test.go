@@ -2,8 +2,6 @@ package rstruct_tests
 
 import (
 	"encoding/json"
-	"os"
-	"path"
 	"reflect"
 	"testing"
 
@@ -11,10 +9,6 @@ import (
 	"github.com/necroin/golibs/libs/rstruct"
 	csv_tests "github.com/necroin/golibs/tests/csv"
 	"github.com/necroin/golibs/utils"
-)
-
-const (
-	csvDataPath = "../csv/assets"
 )
 
 func LoadAssert[T any](t *testing.T, rows []rstruct.RVStruct, cmpResult []T) {
@@ -40,18 +34,13 @@ func TestCSVLoad_Common(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(path.Join(csvDataPath, "common.csv"))
-	if err != nil {
-		t.Error(err)
-	}
-
 	rows := []rstruct.RVStruct{}
-	if err := csv.UnmarshalDataWithOptions(data, &rows, csv.Options{
+	if err := csv.UnmarshalDataWithOptions(csv_tests.CommonData, &rows, csv.Options{
 		AdapterFunc: func(value reflect.Value) csv.Adapter {
 			return rstruct.NewCSVAdapter(customStruct, value)
 		},
 	}); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	cmpResult := []csv_tests.CommonRow{
@@ -85,18 +74,13 @@ func TestLoad_Pointer(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(path.Join(csvDataPath, "common.csv"))
-	if err != nil {
-		t.Error(err)
-	}
-
 	rows := []rstruct.RVStruct{}
-	if err := csv.UnmarshalDataWithOptions(data, &rows, csv.Options{
+	if err := csv.UnmarshalDataWithOptions(csv_tests.CommonData, &rows, csv.Options{
 		AdapterFunc: func(value reflect.Value) csv.Adapter {
 			return rstruct.NewCSVAdapter(customStruct, value)
 		},
 	}); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	expected := []csv_tests.PointerRow{
@@ -130,18 +114,13 @@ func TestLoad_Pointer_Nil(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(path.Join(csvDataPath, "pointer_nil.csv"))
-	if err != nil {
-		t.Error(err)
-	}
-
 	rows := []rstruct.RVStruct{}
-	if err := csv.UnmarshalDataWithOptions(data, &rows, csv.Options{
+	if err := csv.UnmarshalDataWithOptions(csv_tests.PointerNilData, &rows, csv.Options{
 		AdapterFunc: func(value reflect.Value) csv.Adapter {
 			return rstruct.NewCSVAdapter(customStruct, value)
 		},
 	}); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	cmpResult := []csv_tests.PointerRow{
@@ -180,18 +159,13 @@ func TestLoad_Nested(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(path.Join(csvDataPath, "common.csv"))
-	if err != nil {
-		t.Error(err)
-	}
-
 	rows := []rstruct.RVStruct{}
-	if err := csv.UnmarshalDataWithOptions(data, &rows, csv.Options{
+	if err := csv.UnmarshalDataWithOptions(csv_tests.CommonData, &rows, csv.Options{
 		AdapterFunc: func(value reflect.Value) csv.Adapter {
 			return rstruct.NewCSVAdapter(customStruct, value)
 		},
 	}); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	expected := []csv_tests.NestedRow{

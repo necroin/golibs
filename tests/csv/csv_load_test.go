@@ -1,35 +1,16 @@
 package csv_tests
 
 import (
-	"os"
-	"path"
 	"testing"
 
 	"github.com/necroin/golibs/libs/csv"
 	"github.com/necroin/golibs/utils"
-
-	"github.com/google/go-cmp/cmp"
 )
-
-const (
-	dataPath = "./assets"
-)
-
-func LoadAssert[M any, N any](t *testing.T, rows []M, expected []N) {
-	if cmp.Equal(rows, expected) == false {
-		t.Error(rows)
-	}
-}
 
 func TestLoad_Common(t *testing.T) {
-	data, err := os.ReadFile(path.Join(dataPath, "common.csv"))
-	if err != nil {
-		t.Error(err)
-	}
-
 	rows := []CommonRow{}
-	if err := csv.UnmarshalData(data, &rows); err != nil {
-		t.Error(err)
+	if err := csv.UnmarshalData(CommonData, &rows); err != nil {
+		t.Fatal(err)
 	}
 
 	expected := []CommonRow{
@@ -54,14 +35,9 @@ func TestLoad_Common(t *testing.T) {
 }
 
 func TestLoad_Pointer(t *testing.T) {
-	data, err := os.ReadFile(path.Join(dataPath, "common.csv"))
-	if err != nil {
-		t.Error(err)
-	}
-
 	rows := []PointerRow{}
-	if err := csv.UnmarshalData(data, &rows); err != nil {
-		t.Error(err)
+	if err := csv.UnmarshalData(CommonData, &rows); err != nil {
+		t.Fatal(err)
 	}
 
 	expected := []PointerRow{
@@ -86,14 +62,9 @@ func TestLoad_Pointer(t *testing.T) {
 }
 
 func TestLoad_Pointer_Nil(t *testing.T) {
-	data, err := os.ReadFile(path.Join(dataPath, "pointer_nil.csv"))
-	if err != nil {
-		t.Error(err)
-	}
-
 	rows := []PointerRow{}
-	if err := csv.UnmarshalData(data, &rows); err != nil {
-		t.Error(err)
+	if err := csv.UnmarshalData(PointerNilData, &rows); err != nil {
+		t.Fatal(err)
 	}
 
 	expected := []PointerRow{
@@ -123,14 +94,9 @@ func TestLoad_Pointer_Nil(t *testing.T) {
 }
 
 func TestLoad_Nested(t *testing.T) {
-	data, err := os.ReadFile(path.Join(dataPath, "common.csv"))
-	if err != nil {
-		t.Error(err)
-	}
-
 	rows := []NestedRow{}
-	if err := csv.UnmarshalData(data, &rows); err != nil {
-		t.Error(err)
+	if err := csv.UnmarshalData(CommonData, &rows); err != nil {
+		t.Fatal(err)
 	}
 
 	expected := []NestedRow{
@@ -161,14 +127,9 @@ func TestLoad_Nested(t *testing.T) {
 }
 
 func TestLoad_Typed(t *testing.T) {
-	data, err := os.ReadFile(path.Join(dataPath, "typed.csv"))
-	if err != nil {
-		t.Error(err)
-	}
-
 	rows := []TypedRow{}
-	if err := csv.UnmarshalData(data, &rows); err != nil {
-		t.Error(err)
+	if err := csv.UnmarshalData(TypedData, &rows); err != nil {
+		t.Fatal(err)
 	}
 
 	expected := []TypedRow{
@@ -184,19 +145,14 @@ func TestLoad_Typed(t *testing.T) {
 }
 
 func TestLoad_DoubledColumn(t *testing.T) {
-	data, err := os.ReadFile(path.Join(dataPath, "doubled_column.csv"))
-	if err != nil {
-		t.Error(err)
-	}
-
 	rows := []CommonRow{}
-	err = csv.UnmarshalData(data, &rows)
+	err := csv.UnmarshalData(DoubledColumnData, &rows)
 
 	if err == nil {
-		t.Error("Must be error: multiple column definition")
+		t.Fatal("Must be error: multiple column definition")
 	}
 
 	if err.Error() != "[CSV] [Error] failed read columns, multiple column definition: Header2" {
-		t.Error("Must be error: multiple column definition")
+		t.Fatal("Must be error: multiple column definition")
 	}
 }

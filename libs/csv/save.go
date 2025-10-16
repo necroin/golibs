@@ -23,14 +23,15 @@ func MarshalWithOptions[T any](dataWriter io.Writer, data []T, options Options) 
 	}
 	writer.UseCRLF = options.UseCRLF
 
-	headers, err := findHeaders(options.AdapterFunc(reflect.ValueOf(utils.InstantiateSliceElement(&data))), options)
+	headers, err := findHeaders(options.AdapterFunc(reflect.Indirect(reflect.ValueOf(utils.InstantiateSliceElement(&data)))), options)
 	if err != nil {
 		return err
 	}
 	writer.Write(headers)
 	writer.Flush()
 	for _, row := range data {
-		record, err := buildRecord(options.AdapterFunc(reflect.ValueOf(row)), options)
+		rowPointer := &row
+		record, err := buildRecord(options.AdapterFunc(reflect.Indirect(reflect.ValueOf(rowPointer))), options)
 		if err != nil {
 			return err
 		}
