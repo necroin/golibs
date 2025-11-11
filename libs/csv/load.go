@@ -24,6 +24,26 @@ func UnmarshalDataWithOptions[T any](data []byte, result *[]T, options Options) 
 	return UnmarshalWithOptions[T](bytes.NewReader(data), result, options)
 }
 
+func MakeColumns(columnsList []string) (map[string]int, error) {
+	columns := map[string]int{}
+	for index, column := range columnsList {
+		if _, ok := columns[column]; ok {
+			return nil, fmt.Errorf("[CSV] [Error] failed read columns, multiple column definition: %s", column)
+		}
+		columns[column] = index
+	}
+
+	return columns, nil
+}
+
+func MakeColumnsFromReader(reader *csv.Reader) (map[string]int, error) {
+	columnsList, err := reader.Read()
+	if err != nil {
+		return nil, fmt.Errorf("[CSV] [Error] failed read columns: %s", err)
+	}
+	return MakeColumns(columnsList)
+}
+
 func UnmarshalWithOptions[T any](dataReader io.Reader, result *[]T, options Options) error {
 	options.SetDefaults()
 
@@ -37,17 +57,9 @@ func UnmarshalWithOptions[T any](dataReader io.Reader, result *[]T, options Opti
 	reader.LazyQuotes = options.LazyQuotes
 	reader.TrimLeadingSpace = options.TrimLeadingSpace
 
-	columnsList, err := reader.Read()
+	columns, err := MakeColumnsFromReader(reader)
 	if err != nil {
-		return fmt.Errorf("[CSV] [Error] failed read columns: %s", err)
-	}
-
-	columns := map[string]int{}
-	for index, column := range columnsList {
-		if _, ok := columns[column]; ok {
-			return fmt.Errorf("[CSV] [Error] failed read columns, multiple column definition: %s", column)
-		}
-		columns[column] = index
+		return err
 	}
 
 	for {
@@ -58,6 +70,15 @@ func UnmarshalWithOptions[T any](dataReader io.Reader, result *[]T, options Opti
 		if err != nil {
 			return fmt.Errorf("[CSV] [Error] failed read data: %s", err)
 		}
+
+		if options.HeadersRedeclarePattern != "" && len(record) > 0 && record[0] == options.HeadersRedeclarePattern {
+			columns, err = MakeColumnsFromReader(reader)
+			if err != nil {
+				return fmt.Errorf("[CSV] [Error] failed redeclare headers: %s", err)
+			}
+			continue
+		}
+
 		if err := AddRecord(result, record, columns, options); err != nil {
 			return err
 		}

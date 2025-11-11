@@ -30,7 +30,8 @@ type Options struct {
 	// Parse Tag
 	Tag string
 	// Uses for custom objects (reflect by default)
-	AdapterFunc func(reflect.Value) Adapter
+	AdapterFunc             func(reflect.Value) Adapter
+	HeadersRedeclarePattern string
 }
 
 func (options *Options) SetDefaults() {

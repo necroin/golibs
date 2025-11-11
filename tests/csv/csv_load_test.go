@@ -34,6 +34,26 @@ func TestLoad_Common(t *testing.T) {
 	LoadAssert(t, rows, expected)
 }
 
+func TestLoad_Common_HeaderRedeclare(t *testing.T) {
+	rows := []CommonRow{}
+	if err := csv.UnmarshalDataWithOptions(HeaderRedeclareCommonData, &rows, csv.Options{HeadersRedeclarePattern: "__header_redeclare__"}); err != nil {
+		t.Fatal(err)
+	}
+
+	expected := []CommonRow{
+		{
+			FirstHeaderValue:  "R1V1",
+			SecondHeaderValue: "R1V2",
+		},
+		{
+			SecondHeaderValue: "R2V2",
+			ThirdHeaderValue:  "R2V3",
+		},
+	}
+
+	LoadAssert(t, rows, expected)
+}
+
 func TestLoad_Pointer(t *testing.T) {
 	rows := []PointerRow{}
 	if err := csv.UnmarshalData(CommonData, &rows); err != nil {

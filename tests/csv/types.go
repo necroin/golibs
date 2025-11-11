@@ -7,10 +7,11 @@ import (
 )
 
 var (
-	CommonData        = []byte("Header1,Header2,Header3\nR1V1,R1V2,R1V3\nR2V1,R2V2,R2V3\nR3V1,R3V2,R3V3\n")
-	PointerNilData    = []byte("Header1,Header2,Header3\n,R1V2,R1V3\nR2V1,,R2V3\nR3V1,R3V2,\n,,\n")
-	TypedData         = []byte("Int,Uint,Float,String\n1,1,1.1,value1\n")
-	DoubledColumnData = []byte("Header1,Header2,Header2\nR1V1,R1V2,R1V3\nR2V1,R2V2,R2V3\nR3V1,R3V2,R3V3\n")
+	CommonData                = []byte("Header1,Header2,Header3\nR1V1,R1V2,R1V3\nR2V1,R2V2,R2V3\nR3V1,R3V2,R3V3\n")
+	PointerNilData            = []byte("Header1,Header2,Header3\n,R1V2,R1V3\nR2V1,,R2V3\nR3V1,R3V2,\n,,\n")
+	TypedData                 = []byte("Int,Uint,Float,String\n1,1,1.1,value1\n")
+	DoubledColumnData         = []byte("Header1,Header2,Header2\nR1V1,R1V2,R1V3\nR2V1,R2V2,R2V3\nR3V1,R3V2,R3V3\n")
+	HeaderRedeclareCommonData = []byte("Header1,Header2\nR1V1,R1V2\n__header_redeclare__,\nHeader2,Header3\nR2V2,R2V3\n")
 )
 
 type CommonRow struct {
