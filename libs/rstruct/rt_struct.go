@@ -226,9 +226,10 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 					rtsField = NewRTField(rtExField.Name, nestedStruct)
 				} else {
 					rtsField = NewRTField(rtExField.Name, GetDefaultValue(extendOption.DefaultValueMode, rtExField.Type))
-					rtsField.SetTag("type", rtExField.Type.Name())
-					rtsField.SetTag("type_kind", rtExField.Type.Kind().String())
 				}
+
+				rtsField.SetTag("type", rtExField.Type.Name())
+				rtsField.SetTag("type_kind", rtExField.Type.Kind().String())
 
 				if err := rts.AddField(rtsField); err != nil {
 					return fmt.Errorf("[RTStruct] [Extend] failed add field: %s", err)
