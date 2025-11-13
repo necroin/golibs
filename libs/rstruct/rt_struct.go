@@ -51,14 +51,14 @@ type ExtendOption struct {
 }
 
 type RTStruct struct {
-	fields       []*RTField
-	fieldsByName map[string]*RTField
+	Fields       []*RTField          `json:"fields"`
+	FieldsByName map[string]*RTField `json:"fields_by_name"`
 }
 
 func NewStruct() *RTStruct {
 	return &RTStruct{
-		fields:       []*RTField{},
-		fieldsByName: map[string]*RTField{},
+		Fields:       []*RTField{},
+		FieldsByName: map[string]*RTField{},
 	}
 }
 
@@ -66,21 +66,21 @@ func (rts *RTStruct) New() *RVStruct {
 	vFields := []*RVField{}
 	vFieldsByName := map[string]*RVField{}
 
-	for _, tField := range rts.fields {
+	for _, tField := range rts.Fields {
 		vField := &RVField{
 			rtField:  tField,
-			value:    tField.defaultValue,
+			value:    tField.DefaultValue,
 			isStruct: false,
 		}
 
-		nestedRTStruct, ok := tField.defaultValue.(*RTStruct)
+		nestedRTStruct, ok := tField.DefaultValue.(*RTStruct)
 		if ok {
 			vField.value = nestedRTStruct.New()
 			vField.isStruct = true
 		}
 
 		vFields = append(vFields, vField)
-		vFieldsByName[tField.name] = vField
+		vFieldsByName[tField.Name] = vField
 	}
 
 	return &RVStruct{
@@ -91,13 +91,13 @@ func (rts *RTStruct) New() *RVStruct {
 }
 
 func (rts *RTStruct) AddField(field *RTField) error {
-	_, ok := rts.fieldsByName[field.name]
+	_, ok := rts.FieldsByName[field.Name]
 	if ok {
-		return fmt.Errorf("[RTStruct] [AddField] field with name '%s' already exists", field.name)
+		return fmt.Errorf("[RTStruct] [AddField] field with name '%s' already exists", field.Name)
 	}
 
-	rts.fields = append(rts.fields, field)
-	rts.fieldsByName[field.name] = field
+	rts.Fields = append(rts.Fields, field)
+	rts.FieldsByName[field.Name] = field
 
 	return nil
 }
@@ -112,30 +112,30 @@ func (rts *RTStruct) AddFields(fields ...*RTField) error {
 }
 
 func (rts *RTStruct) SetField(field *RTField) error {
-	rtsField, ok := rts.fieldsByName[field.name]
+	rtsField, ok := rts.FieldsByName[field.Name]
 	if !ok {
 		return rts.AddField(field)
 	}
 
-	rtsField.defaultValue = field.defaultValue
-	rtsField.tags = map[string]string{}
+	rtsField.DefaultValue = field.DefaultValue
+	rtsField.Tags = map[string]string{}
 
 	return nil
 }
 
 func (rts *RTStruct) NumField() int {
-	return len(rts.fields)
+	return len(rts.Fields)
 }
 
 func (rts *RTStruct) FieldByIndex(index int) *RTField {
-	if index < 0 || index >= len(rts.fields) {
+	if index < 0 || index >= len(rts.Fields) {
 		return nil
 	}
-	return rts.fields[index]
+	return rts.Fields[index]
 }
 
 func (rts *RTStruct) FieldByName(name string) *RTField {
-	field, ok := rts.fieldsByName[name]
+	field, ok := rts.FieldsByName[name]
 	if !ok {
 		return nil
 	}
@@ -237,11 +237,11 @@ func (rts *RTStruct) Extend(extendOptions ...ExtendOption) error {
 			}
 
 			if !rtsField.IsStruct() && utils.IsStruct(rvExField) && !inIgnoreNestedList {
-				return fmt.Errorf("[RTStruct] [Extend] %s field overwrite from value to struct", rtsField.Name())
+				return fmt.Errorf("[RTStruct] [Extend] %s field overwrite from value to struct", rtsField.Name)
 			}
 
 			if rtsField.IsStruct() && !utils.IsStruct(rvExField) {
-				return fmt.Errorf("[RTStruct] [Extend] %s field overwrite from struct to value", rtsField.Name())
+				return fmt.Errorf("[RTStruct] [Extend] %s field overwrite from struct to value", rtsField.Name)
 			}
 
 			if utils.IsStruct(rvExField) && rtsField.IsStruct() && !inIgnoreNestedList {
@@ -280,21 +280,21 @@ func (rts *RTStruct) write(writer *tabwriter.Writer, level int, isSorted bool) {
 		fmt.Fprintf(writer, "\t{\n")
 	}
 
-	fields := rts.fields
+	fields := rts.Fields
 	if isSorted {
-		fields = append(rts.fields[:0:0], rts.fields...)
-		sort.Slice(fields, func(i, j int) bool { return fields[i].name < fields[j].name })
+		fields = append(rts.Fields[:0:0], rts.Fields...)
+		sort.Slice(fields, func(i, j int) bool { return fields[i].Name < fields[j].Name })
 	}
 
 	for _, field := range fields {
-		nestedRTStruct, ok := field.defaultValue.(*RTStruct)
+		nestedRTStruct, ok := field.DefaultValue.(*RTStruct)
 		if ok {
-			fmt.Fprintf(writer, "%s %s", levelOffset, field.name)
+			fmt.Fprintf(writer, "%s %s", levelOffset, field.Name)
 			nestedRTStruct.write(writer, level+1, isSorted)
 		} else {
-			fmt.Fprintf(writer, "%s %s\t%v\n", levelOffset, field.name, field.defaultValue)
+			fmt.Fprintf(writer, "%s %s\t%v\n", levelOffset, field.Name, field.DefaultValue)
 		}
-		for tagName, tagContent := range field.tags {
+		for tagName, tagContent := range field.Tags {
 			fmt.Fprintf(writer, "%s\t`%s\t: %s`\n", levelOffset, tagName, tagContent)
 		}
 	}

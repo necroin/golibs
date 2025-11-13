@@ -31,7 +31,7 @@ func (rvs *RVStruct) FieldByName(name string) *RVField {
 func (rvs *RVStruct) FieldsListByTag(tag string) []*RVField {
 	result := []*RVField{}
 	for _, field := range rvs.fields {
-		_, ok := field.rtField.tags[tag]
+		_, ok := field.rtField.Tags[tag]
 		if ok {
 			result = append(result, field)
 		}
@@ -42,7 +42,7 @@ func (rvs *RVStruct) FieldsListByTag(tag string) []*RVField {
 func (rvs *RVStruct) FieldsMapByTag(tag string) map[string]*RVField {
 	result := map[string]*RVField{}
 	for _, field := range rvs.fields {
-		fieldTag, ok := field.rtField.tags[tag]
+		fieldTag, ok := field.rtField.Tags[tag]
 		fieldTag = utils.CleanTag(fieldTag)
 		if ok {
 			result[fieldTag] = field

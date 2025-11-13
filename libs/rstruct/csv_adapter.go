@@ -113,7 +113,7 @@ func (csva *CSVAdapter) NumField() int {
 }
 
 func (csva *CSVAdapter) GetTag(key string) string {
-	return csva.fieldValue.rtField.tags[key]
+	return csva.fieldValue.rtField.Tags[key]
 }
 
 func (csva *CSVAdapter) SetValue(value any) {

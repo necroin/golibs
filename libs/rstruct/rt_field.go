@@ -1,50 +1,38 @@
 package rstruct
 
 type RTField struct {
-	name         string
-	defaultValue any
-	tags         map[string]string
+	Name         string            `json:"name"`
+	DefaultValue any               `json:"default_value"`
+	Tags         map[string]string `json:"tags"`
 }
 
 func NewRTField(name string, defaultValue any) *RTField {
 	return &RTField{
-		name:         name,
-		defaultValue: defaultValue,
-		tags:         map[string]string{},
+		Name:         name,
+		DefaultValue: defaultValue,
+		Tags:         map[string]string{},
 	}
 }
 
-func (rtf *RTField) Name() string {
-	return rtf.name
-}
-
-func (rtf *RTField) DefaultValue() any {
-	return rtf.defaultValue
-}
-
-func (rtf *RTField) Tags() map[string]string {
-	return rtf.tags
-}
-
 func (rtf *RTField) SetTag(name string, value string) *RTField {
-	rtf.tags[name] = value
+	rtf.Tags[name] = value
 	return rtf
 }
 
 func (rtf *RTField) RemoveTag(name string) {
-	delete(rtf.tags, name)
+	delete(rtf.Tags, name)
 }
 
 func (rtf *RTField) GetTag(name string) (string, bool) {
-	value, ok := rtf.tags[name]
+	value, ok := rtf.Tags[name]
 	return value, ok
 }
 
 func (rvf *RTField) IsStruct() bool {
-	_, ok := rvf.defaultValue.(*RTStruct)
+	_, ok := rvf.DefaultValue.(*RTStruct)
 	return ok
 }
 
 func (rvf *RTField) AsStruct() *RTStruct {
-	return rvf.defaultValue.(*RTStruct)
+	return rvf.DefaultValue.(*RTStruct)
 }
