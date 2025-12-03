@@ -13,15 +13,15 @@ import (
 )
 
 func UnmarshalData[T any](data []byte, result *[]T) error {
-	return UnmarshalDataWithOptions[T](data, result, Options{})
+	return UnmarshalDataWithOptions(data, result, Options{})
 }
 
 func Unmarshal[T any](dataReader io.Reader, result *[]T) error {
-	return UnmarshalWithOptions[T](dataReader, result, Options{})
+	return UnmarshalWithOptions(dataReader, result, Options{})
 }
 
 func UnmarshalDataWithOptions[T any](data []byte, result *[]T, options Options) error {
-	return UnmarshalWithOptions[T](bytes.NewReader(data), result, options)
+	return UnmarshalWithOptions(bytes.NewReader(data), result, options)
 }
 
 func MakeColumns(columnsList []string) (map[string]int, error) {
@@ -89,12 +89,22 @@ func UnmarshalWithOptions[T any](dataReader io.Reader, result *[]T, options Opti
 
 func AddRecord[T any](result *[]T, data []string, columns map[string]int, options Options) error {
 	record := utils.InstantiateSliceElement(result)
-	rvRecord := reflect.Indirect(reflect.ValueOf(record))
-	adapter := options.AdapterFunc(rvRecord)
+	rvRecord := reflect.ValueOf(record)
+	rvRecordIndirect := reflect.Indirect(rvRecord)
+	adapter := options.AdapterFunc(rvRecordIndirect)
 
 	if adapter.IsStruct() {
 		if err := fillStruct(adapter, data, columns, options); err != nil {
 			return err
+		}
+	}
+
+	if adapter.Kind() == reflect.Map {
+		mapRecord := reflect.MakeMap(rvRecordIndirect.Type()).Interface().(T)
+		record = &mapRecord
+		rvRecord = reflect.ValueOf(mapRecord)
+		for column, index := range columns {
+			rvRecord.SetMapIndex(reflect.ValueOf(column), reflect.ValueOf(data[index]))
 		}
 	}
 

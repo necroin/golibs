@@ -42,7 +42,7 @@ func (parser *Parser[T]) Parse(options ParseOptions, tokens ...Token[T]) (Token[
 	}
 
 	offset := 0
-	matched := false
+	matched := true
 
 	for len(tokens) > 1 || matched {
 		if options.LogFunc != nil {

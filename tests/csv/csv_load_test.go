@@ -176,3 +176,30 @@ func TestLoad_DoubledColumn(t *testing.T) {
 		t.Fatal("Must be error: multiple column definition")
 	}
 }
+
+func TestLoad_Map(t *testing.T) {
+	rows := []map[string]string{}
+	if err := csv.UnmarshalData(CommonData, &rows); err != nil {
+		t.Fatal(err)
+	}
+
+	expected := []map[string]string{
+		{
+			"Header1": "R1V1",
+			"Header2": "R1V2",
+			"Header3": "R1V3",
+		},
+		{
+			"Header1": "R2V1",
+			"Header2": "R2V2",
+			"Header3": "R2V3",
+		},
+		{
+			"Header1": "R3V1",
+			"Header2": "R3V2",
+			"Header3": "R3V3",
+		},
+	}
+
+	LoadAssert(t, rows, expected)
+}

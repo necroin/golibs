@@ -10,7 +10,7 @@ func PointerOf[T any](value T) *T {
 	return &value
 }
 
-func InstantiateSliceElement[T any](value *[]T) *T {
+func InstantiateSliceElement[T any](_ *[]T) *T {
 	return new(T)
 }
 
