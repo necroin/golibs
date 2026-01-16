@@ -89,3 +89,14 @@ func ParseBool(value string) (bool, error) {
 	}
 	return false, fmt.Errorf("parsing \"%s\": invalid syntax", value)
 }
+
+func GetNameOfTypeReflect(value reflect.Type) string {
+	return value.Name()
+}
+
+func GetFullNameOfTypeReflect(value reflect.Type) string {
+	if value.PkgPath() == "" {
+		return GetNameOfTypeReflect(value)
+	}
+	return value.PkgPath() + "/" + GetNameOfTypeReflect(value)
+}
