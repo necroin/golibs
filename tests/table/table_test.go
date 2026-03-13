@@ -15,11 +15,13 @@ func HeaderFormatter(s string) string {
 }
 
 func TestTable(t *testing.T) {
-	table := table.New([]string{"ID", "Name", "Timestamp"}, table.WithHeaderFormatter(HeaderFormatter))
-
+	tb := table.New("ID", "Name", "Timestamp")
+	tb.SetOptions(table.WithHeaderFormatter(HeaderFormatter), table.WithPadding(4), table.WithPadchar('|'))
 	for i := 0; i < 20; i++ {
-		table.InsertRow(i, fmt.Sprintf("Name%d", i), time.Now())
+		tb.InsertRow(i, fmt.Sprintf("Name%d", i), time.Now())
 	}
+	tb.InsertRow(20, fmt.Sprintf("Name%d", 20))
+	tb.InsertRow(21, "", time.Now())
 
-	table.Print()
+	tb.Print()
 }

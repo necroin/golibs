@@ -9,6 +9,8 @@ type Formatter func(string) string
 
 type Options struct {
 	out             io.Writer
+	padding         int
+	padchar         byte
 	headerFormatter Formatter
 }
 
@@ -17,6 +19,8 @@ type Option func(options *Options)
 func DefaultOptions() *Options {
 	return &Options{
 		out:             os.Stdout,
+		padding:         1,
+		padchar:         ' ',
 		headerFormatter: nil,
 	}
 }
@@ -27,4 +31,12 @@ func WithOut(out io.Writer) Option {
 
 func WithHeaderFormatter(formatter Formatter) Option {
 	return func(options *Options) { options.headerFormatter = formatter }
+}
+
+func WithPadding(padding int) Option {
+	return func(options *Options) { options.padding = padding }
+}
+
+func WithPadchar(padchar byte) Option {
+	return func(options *Options) { options.padchar = padchar }
 }
