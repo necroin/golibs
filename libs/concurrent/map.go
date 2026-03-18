@@ -92,6 +92,13 @@ func (concurrentMap *ConcurrentMap[K, V]) GetOrAdd(key K, value V) (V, bool) {
 	return concurrentMap.data.GetOrAdd(key, value)
 }
 
+// Erases all elements from the container.
+func (concurrentMap *ConcurrentMap[K, V]) Clear() {
+	concurrentMap.mutex.Lock()
+	defer concurrentMap.mutex.Unlock()
+	concurrentMap.data.Clear()
+}
+
 func (concurrentMap *ConcurrentMap[K, V]) String() string {
 	concurrentMap.mutex.RLock()
 	defer concurrentMap.mutex.RUnlock()

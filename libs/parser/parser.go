@@ -49,9 +49,11 @@ func (parser *Parser[T]) Parse(options ParseOptions, tokens ...Token[T]) (Token[
 			options.LogFunc("[Parser] iteration tokens: %s", tokens)
 			options.LogFunc("[Parser] iteration offset: %d", offset)
 		}
+
 		if offset == len(tokens) {
 			return nil, fmt.Errorf("[Parser] failed parse tokens: %s", tokens)
 		}
+
 		matched = false
 		for _, rule := range parser.rules {
 			if options.LogFunc != nil {
@@ -60,20 +62,26 @@ func (parser *Parser[T]) Parse(options ParseOptions, tokens ...Token[T]) (Token[
 
 			ruleTokensCount := len(rule.tokens)
 			tokensCount := len(tokens)
+
 			if offset+ruleTokensCount > tokensCount {
 				if options.LogFunc != nil {
 					options.LogFunc("[Parser] decline rule: offset+ruleTokensCount (%d) > tokensCount (%d)", offset+ruleTokensCount, tokensCount)
 				}
 				continue
 			}
-			matchTokens := tokens[offset : ruleTokensCount+offset]
+
+			matchTokens := make([]Token[T], ruleTokensCount)
+			copy(matchTokens, tokens[offset:ruleTokensCount+offset])
+
 			if options.LogFunc != nil {
 				options.LogFunc("[Parser] match tokens: %s", matchTokens)
 			}
+
 			if rule.CompareTokens(matchTokens) {
 				if options.LogFunc != nil {
 					options.LogFunc("[Parser] reduce by rule: %s", rule)
 				}
+
 				newTokens := append(tokens[:offset], NewParserToken[T](rule.name, rule.handler(matchTokens)))
 				newTokens = append(newTokens, tokens[ruleTokensCount+offset:]...)
 				tokens = newTokens
@@ -82,10 +90,12 @@ func (parser *Parser[T]) Parse(options ParseOptions, tokens ...Token[T]) (Token[
 				break
 			}
 		}
+
 		if !matched {
 			offset += 1
 		}
 	}
+
 	if options.LogFunc != nil {
 		options.LogFunc("[Parser] final tokens: %s", tokens)
 		options.LogFunc("[Parser] result token value: %v", tokens[0].Value())

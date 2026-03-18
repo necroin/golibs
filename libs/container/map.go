@@ -94,6 +94,11 @@ func (container *Map[K, V]) GetOrAdd(key K, value V) (V, bool) {
 	return container.GetOrAddByFunc(key, func(key K) V { return value })
 }
 
+// Erases all elements from the container.
+func (container *Map[K, V]) Clear() {
+	container.data = map[K]V{}
+}
+
 func (container *Map[K, V]) String() string {
 	return fmt.Sprintf("(len = %d) %v", container.Size(), container.data)
 }
