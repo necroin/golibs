@@ -6,10 +6,6 @@ import (
 	"strings"
 )
 
-func PointerOf[T any](value T) *T {
-	return &value
-}
-
 func InstantiateSliceElement[T any](_ *[]T) *T {
 	return new(T)
 }
@@ -58,4 +54,22 @@ func SaveToFile(filename string, data []byte) error {
 	}
 
 	return nil
+}
+
+func ParseStringSliceWithSeparator(value string, sep string) []string {
+	if value == "" {
+		return []string{}
+	}
+
+	result := strings.Split(value, sep)
+
+	for i, field := range result {
+		result[i] = strings.Trim(field, " ")
+	}
+
+	return result
+}
+
+func ParseStringSlice(value string) []string {
+	return ParseStringSliceWithSeparator(value, ",")
 }

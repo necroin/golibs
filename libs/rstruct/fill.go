@@ -3,11 +3,29 @@ package rstruct
 import (
 	"fmt"
 	"reflect"
+	"slices"
 
 	"github.com/necroin/golibs/utils"
 )
 
-type TypeSetter func(value string, dst reflect.Value) error
+type FillOption func(options *FillOptions)
+
+type FillOptions struct {
+	WithClear  bool
+	SkipValues []string
+}
+
+func FillWithClear() FillOption {
+	return func(options *FillOptions) {
+		options.WithClear = true
+	}
+}
+
+func WithSkipValues(values ...string) FillOption {
+	return func(options *FillOptions) {
+		options.SkipValues = append(options.SkipValues, values...)
+	}
+}
 
 func setByType(setters map[string]TypeSetter, src string, dst reflect.Value, typeName string) error {
 	if src == "null" {
@@ -24,7 +42,20 @@ func setByType(setters map[string]TypeSetter, src string, dst reflect.Value, typ
 	return nil
 }
 
-func (message *RVStruct) FillStruct(setters map[string]TypeSetter, fillData any, withClear bool) error {
+func validateType(setters map[string]TypeSetter, typeName string) error {
+	_, ok := setters[typeName]
+	if !ok {
+		return fmt.Errorf("[ValidateType] unknown type: %s", typeName)
+	}
+	return nil
+}
+
+func (message *RVStruct) FillStruct(setters map[string]TypeSetter, fillData any, opts ...FillOption) error {
+	options := &FillOptions{}
+	for _, opt := range opts {
+		opt(options)
+	}
+
 	rvFillData := utils.DerefValueOf(fillData)
 	rtFillData := utils.DerefTypeOf(fillData)
 
@@ -52,10 +83,16 @@ func (message *RVStruct) FillStruct(setters map[string]TypeSetter, fillData any,
 
 			if utils.IsPointer(rvField) {
 				rvField.Set(reflect.New(rvField.Type().Elem()))
+
+				if err := messageField.AsStruct().FillStruct(setters, rvField.Interface(), opts...); err != nil {
+					return err
+				}
+			} else {
+				if err := messageField.AsStruct().FillStruct(setters, rvField.Addr().Interface(), opts...); err != nil {
+					return err
+				}
 			}
-			if err := messageField.AsStruct().FillStruct(setters, rvField.Interface(), withClear); err != nil {
-				return err
-			}
+
 			continue
 		}
 
@@ -64,7 +101,7 @@ func (message *RVStruct) FillStruct(setters map[string]TypeSetter, fillData any,
 			srcValue = fmt.Sprintf("%v", utils.DerefValueOf(messageField.Get()).Interface())
 		}
 
-		if srcValue == "*" {
+		if slices.Contains(options.SkipValues, srcValue) {
 			continue
 		}
 
@@ -86,11 +123,15 @@ func (message *RVStruct) FillStruct(setters map[string]TypeSetter, fillData any,
 
 		}
 
+		if err := validateType(setters, typeName); err != nil && !(utils.IsStruct(rvField) && messageField.IsStruct()) {
+			return fmt.Errorf("[FillStruct] failed validate type: %s", err)
+		}
+
 		if err := setByType(setters, srcValue, rvField, typeName); err != nil {
 			return fmt.Errorf("[FillStruct] failed set value for %s field: %s", rtField.Name, err)
 		}
 
-		if withClear {
+		if options.WithClear {
 			messageField.Set(nil)
 		}
 	}

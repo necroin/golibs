@@ -127,6 +127,10 @@ func (container *Slice[V]) PopAt(index int) (V, error) {
 }
 
 func (container *Slice[V]) PopRandom() (V, error) {
+	if container.IsEmpty() {
+		return *new(V), fmt.Errorf("empty container")
+	}
+
 	index := container.randomGenerator.Intn(container.Size())
 
 	result, err := container.At(index)
