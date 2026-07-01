@@ -13,6 +13,10 @@ type RVStruct struct {
 	fieldsByName map[string]*RVField
 }
 
+func (rvs *RVStruct) Fields() []*RVField {
+	return rvs.fields
+}
+
 func (rvs *RVStruct) FieldByIndex(index int) *RVField {
 	if index < 0 || index >= len(rvs.fields) {
 		return nil
