@@ -21,6 +21,13 @@ func (ra *ReflectAdapter) Kind() reflect.Kind {
 	return ra.value.Kind()
 }
 
+func (ra *ReflectAdapter) IsValid() bool {
+	return ra.value.IsValid()
+}
+func (ra *ReflectAdapter) IsExported() bool {
+	return ra.fieldType.IsExported()
+}
+
 func (ra *ReflectAdapter) IsPointer() bool {
 	return utils.IsPointer(ra.value)
 }

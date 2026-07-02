@@ -37,6 +37,13 @@ func (csva *CSVAdapter) Kind() reflect.Kind {
 	return reflect.Struct
 }
 
+func (csva *CSVAdapter) IsValid() bool {
+	return true
+}
+func (csva *CSVAdapter) IsExported() bool {
+	return true
+}
+
 func (csva *CSVAdapter) IsPointer() bool {
 	if csva.fieldValue != nil {
 		return csva.fieldValue.IsPointer()

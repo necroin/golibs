@@ -4,6 +4,8 @@ import "reflect"
 
 type Adapter interface {
 	Kind() reflect.Kind
+	IsValid() bool
+	IsExported() bool
 	IsPointer() bool
 	IsNil() bool
 	IsStruct() bool
