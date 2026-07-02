@@ -121,6 +121,14 @@ func fillStruct(structValue Adapter, data []string, columns map[string]int, opti
 	for fieldIndex := 0; fieldIndex < structValue.NumField(); fieldIndex++ {
 		field := structValue.Field(fieldIndex)
 
+		if !field.IsValid() {
+			continue
+		}
+
+		if !field.IsExported() {
+			continue
+		}
+
 		if field.IsStruct() {
 			if err := fillStruct(structValue.Field(fieldIndex), data, columns, options); err != nil {
 				return err
