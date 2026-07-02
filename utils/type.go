@@ -7,37 +7,60 @@ import (
 
 // Reports whether value is pointer.
 func IsPointer(value reflect.Value) bool {
+	if !value.IsValid() {
+		return false
+	}
 	return value.Type().Kind() == reflect.Pointer
 }
 
 // Reports whether value is interface.
 func IsInterface(value reflect.Value) bool {
+	if !value.IsValid() {
+		return false
+	}
 	return value.Type().Kind() == reflect.Interface
 }
 
 // Reports whether value is struct.
 func IsStruct(value reflect.Value) bool {
-	return value.Type().Kind() == reflect.Struct || (IsPointer(value) && value.Elem().Kind() == reflect.Struct)
+	if !value.IsValid() {
+		return false
+	}
+	return value.Type().Kind() == reflect.Struct || (IsPointer(value) && value.Type().Elem().Kind() == reflect.Struct)
 }
 
 // Reports whether value is slice.
 func IsSlice(value reflect.Value) bool {
-	return value.Type().Kind() == reflect.Slice || (IsPointer(value) && value.Type().Elem().Kind() == reflect.Slice)
+	if !value.IsValid() {
+		return false
+	}
+	return (value.Type().Kind() == reflect.Slice || (IsPointer(value) && value.Type().Elem().Kind() == reflect.Slice))
 }
 
 // Reports whether value is map.
 func IsMap(value reflect.Value) bool {
+	if !value.IsValid() {
+		return false
+	}
 	return value.Type().Kind() == reflect.Map || (IsPointer(value) && value.Type().Elem().Kind() == reflect.Map)
 }
 
 // Reports whether value is nil.
 func IsNil(value reflect.Value) bool {
-	return value.Interface() == nil || (IsPointer(value) || IsMap(value) || IsSlice(value) || IsInterface(value)) && value.IsNil()
+	if !value.IsValid() {
+		return false
+	}
+	return (IsPointer(value) || IsMap(value) || IsSlice(value) || IsInterface(value)) && value.IsNil()
 }
 
 // Dereferences the value if it is a pointer.
 func DerefValue(value reflect.Value) reflect.Value {
 	result := value
+
+	if !result.IsValid() {
+		return result
+	}
+
 	if IsPointer(result) {
 		result = result.Elem()
 	}
