@@ -42,7 +42,7 @@ func setByType(setters map[string]TypeSetter, src string, dst reflect.Value, typ
 	return nil
 }
 
-func validateType(setters map[string]TypeSetter, typeName string) error {
+func ValidateTypeSetter(setters map[string]TypeSetter, typeName string) error {
 	_, ok := setters[typeName]
 	if !ok {
 		return fmt.Errorf("[ValidateType] unknown type: %s", typeName)
@@ -123,7 +123,7 @@ func (message *RVStruct) FillStruct(setters map[string]TypeSetter, fillData any,
 
 		}
 
-		if err := validateType(setters, typeName); err != nil && !(utils.IsStruct(rvField) && messageField.IsStruct()) {
+		if err := ValidateTypeSetter(setters, typeName); err != nil && !(utils.IsStruct(rvField) && messageField.IsStruct()) {
 			return fmt.Errorf("[FillStruct] failed validate type: %s", err)
 		}
 
